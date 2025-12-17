@@ -18,7 +18,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
     // 1. Evaluation State
     const [evaluating, setEvaluating] = useState(null);
     const [showDetails, setShowDetails] = useState(false);
-    const { data: evalData, setData: setEvalData, patch: patchEval, processing: evalProcessing, reset: resetEval } = useForm({
+    const { data: evalData, setData: setEvalData, patch: patchEval, processing: evalProcessing, errors: evalErrors, reset: resetEval } = useForm({
         estado: 'programada',
         resultado: '',
         tipo: 'presencial',
@@ -49,7 +49,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
 
     // 2. Scheduling State (For Admins to schedule 'apto_entrevista' postulations)
     const [scheduling, setScheduling] = useState(null); // Postulation being scheduled
-    const { data: schedData, setData: setSchedData, post: postSched, processing: schedProcessing, reset: resetSched } = useForm({
+    const { data: schedData, setData: setSchedData, post: postSched, processing: schedProcessing, errors: schedErrors, reset: resetSched } = useForm({
         postulacion_id: '',
         fecha: '',
         hora: '',
@@ -441,7 +441,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                     <option value="completada">SÍ, asistió</option>
                                     <option value="no_asistio">NO asistió</option>
                                 </select>
-                                <InputError message={evalData.errors.estado} className="mt-2" />
+                                <InputError message={evalErrors.estado} className="mt-2" />
                             </div>
 
                             {/* SECCIÓN 3: Evaluación (Solo si asistió) */}
@@ -461,7 +461,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                             <option value="apto">APTO (Aprobado)</option>
                                             <option value="no_apto">NO APTO (Rechazado)</option>
                                         </select>
-                                        <InputError message={evalData.errors.resultado} className="mt-2" />
+                                        <InputError message={evalErrors.resultado} className="mt-2" />
                                         <p className="text-xs text-gray-500 mt-1">Si selecciona 'APTO', el estudiante pasará a ser BECARIO.</p>
                                     </div>
 
@@ -473,7 +473,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                             onChange={e => setEvalData('observaciones', e.target.value)}
                                             placeholder="Ingrese detalles sobre la entrevista..."
                                         ></textarea>
-                                        <InputError message={evalData.errors.observaciones} className="mt-2" />
+                                        <InputError message={evalErrors.observaciones} className="mt-2" />
                                     </div>
                                 </div>
                             )}
@@ -521,12 +521,12 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                         onChange={e => setSchedData('hora', e.target.value)}
                                         required
                                     />
-                                    <InputError message={schedData.errors.hora} className="mt-2" />
+                                    <InputError message={schedErrors.hora} className="mt-2" />
                                 </div>
                             </div>
 
-                            <InputError message={schedData.errors.fecha} className="mt-2" />
-                            <InputError message={schedData.errors.postulacion_id} className="mt-2" />
+                            <InputError message={schedErrors.fecha} className="mt-2" />
+                            <InputError message={schedErrors.postulacion_id} className="mt-2" />
 
                             <div className="mb-4">
                                 <InputLabel value="Tipo de Entrevista" />
@@ -540,7 +540,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                     <option value="presencial">Presencial</option>
                                     <option value="virtual">Virtual</option>
                                 </select>
-                                <InputError message={schedData.errors.tipo} className="mt-2" />
+                                <InputError message={schedErrors.tipo} className="mt-2" />
                             </div>
 
                             {schedData.tipo === 'virtual' && (
@@ -554,7 +554,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                         onChange={e => setSchedData('link_reunion', e.target.value)}
                                         required
                                     />
-                                    <InputError message={schedData.errors.link_reunion} className="mt-2" />
+                                    <InputError message={schedErrors.link_reunion} className="mt-2" />
                                 </div>
                             )}
 
@@ -572,7 +572,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
 
 function OtrosServiciosTable({ items }) {
     const [managing, setManaging] = useState(null);
-    const { data, setData, patch, processing, reset } = useForm({
+    const { data, setData, patch, processing, errors, reset } = useForm({
         fecha: '',
         hora: '',
         estado: '',
