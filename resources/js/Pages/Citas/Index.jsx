@@ -5,6 +5,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/Modal';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
+import InputError from '@/Components/InputError';
 import { useState } from 'react';
 
 export default function Index({ auth, postulacion, activePostulacion, entrevista, entrevistas, postulacionesPorProgramar, history, isBeneficiary, solicitudesServicios }) {
@@ -440,6 +441,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                     <option value="completada">SÍ, asistió</option>
                                     <option value="no_asistio">NO asistió</option>
                                 </select>
+                                <InputError message={evalData.errors.estado} className="mt-2" />
                             </div>
 
                             {/* SECCIÓN 3: Evaluación (Solo si asistió) */}
@@ -459,6 +461,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                             <option value="apto">APTO (Aprobado)</option>
                                             <option value="no_apto">NO APTO (Rechazado)</option>
                                         </select>
+                                        <InputError message={evalData.errors.resultado} className="mt-2" />
                                         <p className="text-xs text-gray-500 mt-1">Si selecciona 'APTO', el estudiante pasará a ser BECARIO.</p>
                                     </div>
 
@@ -470,6 +473,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                             onChange={e => setEvalData('observaciones', e.target.value)}
                                             placeholder="Ingrese detalles sobre la entrevista..."
                                         ></textarea>
+                                        <InputError message={evalData.errors.observaciones} className="mt-2" />
                                     </div>
                                 </div>
                             )}
@@ -517,8 +521,12 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                         onChange={e => setSchedData('hora', e.target.value)}
                                         required
                                     />
+                                    <InputError message={schedData.errors.hora} className="mt-2" />
                                 </div>
                             </div>
+
+                            <InputError message={schedData.errors.fecha} className="mt-2" />
+                            <InputError message={schedData.errors.postulacion_id} className="mt-2" />
 
                             <div className="mb-4">
                                 <InputLabel value="Tipo de Entrevista" />
@@ -532,6 +540,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                     <option value="presencial">Presencial</option>
                                     <option value="virtual">Virtual</option>
                                 </select>
+                                <InputError message={schedData.errors.tipo} className="mt-2" />
                             </div>
 
                             {schedData.tipo === 'virtual' && (
@@ -545,12 +554,13 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                         onChange={e => setSchedData('link_reunion', e.target.value)}
                                         required
                                     />
+                                    <InputError message={schedData.errors.link_reunion} className="mt-2" />
                                 </div>
                             )}
 
                             <div className="flex justify-end space-x-2 mt-6">
                                 <SecondaryButton onClick={() => setScheduling(null)}>Cancelar</SecondaryButton>
-                                <PrimaryButton disabled={schedProcessing}>Programar Cita</PrimaryButton>
+                                <PrimaryButton type="submit" disabled={schedProcessing}>Programar Cita</PrimaryButton>
                             </div>
                         </form>
                     )}
