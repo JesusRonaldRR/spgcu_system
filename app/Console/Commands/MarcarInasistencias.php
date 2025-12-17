@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use App\Models\ProgramacionComedor;
+use App\Models\Menu;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class MarcarInasistencias extends Command
+{
+    protected $signature = 'comedor:marcar-inasistencias {--realtime : Procesa menus que ya terminaron HOY}';
+    protected $description = 'Procesa las reservas pasadas: perdona si asistió al menos una vez, marca falta si no asistió a nada.';
+
+    public function handle()
+    {
+        $realtimeMode = $this->option('realtime');
+
+        if ($realtimeMode) {
+            $this->info("Modo en tiempo real: Procesando menus terminados HOY.");
+            $this->processEndedMenusToday();
+        } else {
+            // Standard Mode: Process yesterday (full day)
+            $targetDate = Carbon::yesterday();
+            $dateStr = $targetDate->format('Y-m-d');
+            $this->info("Procesando inasistencias para: {$dateStr}");
+            $this->processFullDay($dateStr, $targetDate);
+        }
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Process menus that have ended TODAY (realtime mode).
+     * For each menu where hora_fin < NOW, mark 'programado' as 'falta'.
+     */
+    private function processEndedMenusToday()
+    {
+        $now = Carbon::now();
+        $todayDate = $now->toDateString();
+        $currentTime = $now->format('H:i:s');
+
+        // Find all menus for TODAY where hora_fin has passed
+        $endedMenus = Menu::whereDate('fecha', $todayDate)
+            ->where('hora_fin', '<', $currentTime)
+            ->get();
+
+        if ($endedMenus->isEmpty()) {
+            $this->info("No hay menus terminados para procesar.");
+            return;
+        }
+
+        foreach ($endedMenus as $menu) {
+            $this->info("Procesando menu terminado: {$menu->tipo} ({$menu->hora_inicio} - {$menu->hora_fin})");
+
+            // Find all 'programado' reservations for this specific menu
+            $pending = ProgramacionComedor::where('menu_id', $menu->id)
+                ->where('estado', 'programado')
+                ->get();
+
+            foreach ($pending as $programacion) {
+                $programacion->estado = 'falta';
+                $programacion->save();
+                $this->warn("  User {$programacion->usuario_id}: Marcado FALTA para {$menu->tipo}.");
+            }
+        }
+
+        // Check suspensions for affected users
+        $affectedUserIds = ProgramacionComedor::whereIn('menu_id', $endedMenus->pluck('id'))
+            ->where('estado', 'falta')
+            ->distinct()
+            ->pluck('usuario_id');
+
+        $this->checkSuspensions($affectedUserIds);
+    }
+
+    /**
+     * Process a full day (used for previous days, runs at night/morning after day ends).
+     */
+    private function processFullDay($dateStr, $targetDate)
+    {
+        $userIds = ProgramacionComedor::where('estado', 'programado')
+            ->whereHas('menu', function ($q) use ($targetDate) {
+                $q->whereDate('fecha', $targetDate);
+            })
+            ->distinct()
+            ->pluck('usuario_id');
+
+        foreach ($userIds as $userId) {
+            $this->processUserDay($userId, $dateStr);
+        }
+
+        $this->checkSuspensions($userIds);
+    }
+
+    private function processUserDay($userId, $dateStr)
+    {
+        $attendedCount = ProgramacionComedor::where('usuario_id', $userId)
+            ->where('estado', 'asistio')
+            ->whereHas('menu', function ($q) use ($dateStr) {
+                $q->whereDate('fecha', $dateStr);
+            })
+            ->count();
+
+        $pendingQuery = ProgramacionComedor::where('usuario_id', $userId)
+            ->where('estado', 'programado')
+            ->whereHas('menu', function ($q) use ($dateStr) {
+                $q->whereDate('fecha', $dateStr);
+            });
+
+        if ($attendedCount > 0) {
+            $deleted = $pendingQuery->delete();
+            $this->info("User {$userId}: Asistió {$attendedCount} veces. {$deleted} reservas sobrantes eliminadas.");
+        } else {
+            $updated = $pendingQuery->update(['estado' => 'falta']);
+            $this->info("User {$userId}: NO asistió. {$updated} reservas marcadas como FALTA.");
+        }
+    }
+
+    private function checkSuspensions($userIds)
+    {
+        foreach ($userIds as $userId) {
+            $faults = ProgramacionComedor::where('usuario_id', $userId)
+                ->where('estado', 'falta')
+                ->count();
+
+            if ($faults >= 3) {
+                $user = User::find($userId);
+                if ($user && $user->estado !== 'suspendido') {
+                    $user->estado = 'suspendido';
+                    $user->save();
+                    $this->error("User {$userId} suspendido por acumular {$faults} faltas.");
+                    Log::warning("User {$userId} suspended due to {$faults} faults.");
+                }
+            }
+        }
+    }
+}

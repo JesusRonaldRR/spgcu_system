@@ -1,0 +1,33 @@
+# Project Tasks
+
+- [x] **1. Setup & Environment**
+    - [x] Initial project analysis
+    - [x] Database schema creation ('convocatorias', 'postulaciones', 'asistencias', etc.)
+    - [x] Authentication setup (Breeze/Inertia) with roles
+- [x] **2. Database & Migrations**
+    - [x] Users table with DNI and Role
+    - [x] Postulaciones structure
+- [x] **3. Role-Based Dashboards**
+    - [x] Middleware for role access
+    - [x] Student Dashboard styling
+    - [x] Admin/Admin Dashboard styling
+- [/] **4. Convocatoria Management**
+    - [ ] CRUD Convocatorias (Admin)
+    - [x] Display Active Convocatorias (Student)
+- [/] **5. Implementar Postulación (FUT)**
+    - [x] Formulario tipo FUT (Datos, Grilla Socioeconómica)
+    - [x] Carga de Documentos (PDF, Images)
+    - [x] Firma Digital (Canvas)
+    - [x] Validación de fechas (Convocatoria) y Restricción de duplicados (Rechazados pueden reintentar)
+- [x] **6. Panel Administrativo (Evaluación)**
+    - [x] Listado de postulaciones (Filtros, Buscador)
+    - [x] Detalle de postulación (Ver FUT y documentos)
+    - [x] Acciones: Aprobar (Derivar a Cita), Rechazar (Permite reintento)
+- [/] **7. Módulo de Citas (Psicológica)** <!-- NEW -->
+    - [x] Schema: Tabla `entrevistas` / `horarios`
+    - [/] Admin: Generar horarios disponibles (Implícito en evaluación)
+    - [x] Estudiante: Reservar cita (Solo si estado = apto_entrevista)
+    - [x] Admin/Psicólogo: Registrar resultado de entrevista
+- [/] **8. Flujo Final (Becario)** <!-- NEW -->
+    - [x] Estado final `becario`
+    - [x] Generación de credenciales/QR final (Implementado en Controller)

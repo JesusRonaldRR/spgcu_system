@@ -1,0 +1,474 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tocloft}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+\definecolor{primaryblue}{HTML}{31436B}
+\definecolor{lightgray}{HTML}{F3F4F6}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=primaryblue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Manual de Usuario - SPGCU}}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{Universidad Nacional de Piura}
+
+\title{
+    \vspace{-2cm}
+    % \includegraphics[width=4cm]{logo_unp.png} \\ % Descomentar cuando tengas el logo
+    \vspace{1cm}
+    \vspace{1cm}
+    \textbf{\Huge Manual de Usuario} \\
+    \vspace{0.5cm}
+    \textbf{\Large Sistema de Programación y Gestión del Comedor Universitario} \\
+    \vspace{0.3cm}
+    \textbf{(SPGCU)}
+}
+\author{
+    \textbf{Oficina de Bienestar Universitario} \\
+    Universidad Nacional de Piura
+}
+\date{Diciembre 2025}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introducción}
+% ============================================================
+
+El Sistema de Programación y Gestión del Comedor Universitario (SPGCU) es una plataforma web diseñada para automatizar y optimizar los procesos relacionados con el servicio de alimentación para estudiantes beneficiarios de la Universidad Nacional de Piura.
+
+\subsection{Objetivos del Sistema}
+\begin{itemize}
+    \item Gestionar convocatorias para nuevos beneficiarios del comedor universitario.
+    \item Registrar y evaluar postulaciones de estudiantes.
+    \item Programar y controlar la asistencia al comedor mediante códigos QR.
+    \item Administrar menús diarios (desayuno, almuerzo, cena).
+    \item Generar reportes de asistencia y beneficiarios.
+\end{itemize}
+
+\subsection{Roles de Usuario}
+El sistema contempla tres roles principales:
+
+\begin{enumerate}
+    \item \textbf{Estudiante}: Puede postular a convocatorias, ver su QR, programar comidas y solicitar justificaciones.
+    \item \textbf{Administrativo (Bienestar Universitario)}: Gestiona convocatorias, evalúa entrevistas, administra menús y registra asistencias.
+    \item \textbf{Administrador}: Acceso completo al sistema, incluyendo gestión de usuarios y configuraciones avanzadas.
+\end{enumerate}
+
+% ============================================================
+\section{Acceso al Sistema}
+% ============================================================
+
+\subsection{Requisitos del Sistema}
+\begin{itemize}
+    \item Navegador web moderno (Chrome, Firefox, Edge).
+    \item Conexión a Internet estable.
+    \item Para escaneo QR: Dispositivo con cámara.
+\end{itemize}
+
+\subsection{Inicio de Sesión}
+\begin{enumerate}
+    \item Acceda a la URL del sistema: \texttt{http://spgcu.unp.edu.pe}
+    \item Ingrese su \textbf{DNI} y \textbf{Contraseña}.
+    \item Haga clic en \textbf{Iniciar Sesión}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{login.png}
+    \caption{Pantalla de Inicio de Sesión}
+    \label{fig:login}
+\end{figure}
+
+\subsection{Registro de Nuevo Usuario (Estudiantes)}
+\begin{enumerate}
+    \item En la pantalla de login, haga clic en \textbf{Registrarse}.
+    \item Complete el formulario con sus datos personales:
+    \begin{itemize}
+        \item DNI (8 dígitos)
+        \item Nombres y Apellidos
+        \item Código de Estudiante
+        \item Correo Electrónico Institucional
+        \item Contraseña (mínimo 8 caracteres)
+    \end{itemize}
+    \item Haga clic en \textbf{Crear Cuenta}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{registro.png}
+    \caption{Formulario de Registro de Estudiante}
+    \label{fig:registro}
+\end{figure}
+
+% ============================================================
+\section{Módulo de Estudiante}
+% ============================================================
+
+\subsection{Dashboard del Estudiante}
+Al iniciar sesión, el estudiante verá un panel con accesos rápidos a:
+\begin{itemize}
+    \item Convocatorias Activas
+    \item Mi Código QR
+    \item Programar Comidas
+    \item Mis Justificaciones
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{dashboard_estudiante.png}
+    \caption{Dashboard del Estudiante}
+    \label{fig:dashboard_estudiante}
+\end{figure}
+
+\subsection{Postular a una Convocatoria}
+\begin{enumerate}
+    \item Desde el menú lateral, seleccione \textbf{Postulaciones} $\rightarrow$ \textbf{Nueva Postulación}.
+    \item Seleccione la convocatoria activa.
+    \item Complete el formulario socioeconómico:
+    \begin{itemize}
+        \item Ingreso Familiar Mensual (S/.)
+        \item Número de Miembros del Hogar
+        \item Condición de Vivienda (Propia, Alquilada, etc.)
+    \end{itemize}
+    \item Adjunte los documentos requeridos (PDF, máximo 5MB cada uno).
+    \item Haga clic en \textbf{Enviar Postulación}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{formulario_postulacion.png}
+    \caption{Formulario de Postulación}
+    \label{fig:postulacion}
+\end{figure}
+
+\textbf{Nota:} Solo puede postular a una convocatoria activa a la vez.
+
+\subsection{Mi Código QR}
+Una vez aprobado como beneficiario, podrá acceder a su código QR:
+
+\begin{enumerate}
+    \item Vaya a \textbf{Mi QR} desde el menú o dashboard.
+    \item Se mostrará su código QR personal junto con sus datos.
+    \item Presente este código en el comedor para registrar su asistencia.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.6\textwidth]{mi_qr.png}
+    \caption{Código QR del Estudiante Beneficiario}
+    \label{fig:mi_qr}
+\end{figure}
+
+\textbf{Importante:}
+\begin{itemize}
+    \item El código QR es personal e intransferible.
+    \item Suba el brillo de su pantalla al máximo para facilitar el escaneo.
+\end{itemize}
+
+\subsection{Programar Comidas Semanales}
+\begin{enumerate}
+    \item Acceda a \textbf{Comedor} $\rightarrow$ \textbf{Mi Horario}.
+    \item Visualice el calendario semanal con los menús disponibles.
+    \item Haga clic en las comidas que desea reservar (máximo 3 por día).
+    \item Haga clic en \textbf{Guardar Selección}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{programar_comidas.png}
+    \caption{Calendario de Programación de Comidas}
+    \label{fig:programar_comidas}
+\end{figure}
+
+\textbf{Restricciones:}
+\begin{itemize}
+    \item No puede reservar comidas para fechas pasadas.
+    \item Si no asiste a una comida reservada, se contará como \textbf{Inasistencia}.
+    \item Acumular 3 inasistencias resultará en \textbf{suspensión temporal}.
+\end{itemize}
+
+\subsection{Solicitar Justificación}
+Si no puede asistir a una comida reservada, puede solicitar justificación:
+
+\begin{enumerate}
+    \item Vaya a \textbf{Justificaciones}.
+    \item Haga clic en \textbf{Nueva Justificación}.
+    \item Seleccione la fecha a justificar.
+    \item Escriba el motivo detallado.
+    \item Adjunte documentos de respaldo si los tiene.
+    \item Envíe la solicitud.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{solicitar_justificacion.png}
+    \caption{Formulario de Solicitud de Justificación}
+    \label{fig:justificacion}
+\end{figure}
+
+El estado de su justificación puede ser:
+\begin{itemize}
+    \item \textcolor{gray}{\textbf{Pendiente}}: En espera de revisión.
+    \item \textcolor{green}{\textbf{Aprobada}}: La inasistencia ha sido justificada.
+    \item \textcolor{red}{\textbf{Rechazada}}: No se aceptó la justificación.
+\end{itemize}
+
+% ============================================================
+\section{Módulo de Administrador / Administrativo}
+% ============================================================
+
+\subsection{Dashboard Administrativo}
+Los usuarios con rol Administrador o Administrativo verán un panel con estadísticas y accesos rápidos a:
+
+\begin{itemize}
+    \item Convocatorias
+    \item Postulaciones Pendientes
+    \item Entrevistas
+    \item Lista de Beneficiarios
+    \item Gestión de Menús
+    \item Escáner de Asistencia
+    \item Reportes
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{dashboard_admin.png}
+    \caption{Dashboard del Administrador}
+    \label{fig:dashboard_admin}
+\end{figure}
+
+\subsection{Gestión de Convocatorias}
+\begin{enumerate}
+    \item Vaya a \textbf{Convocatorias}.
+    \item Para crear una nueva, haga clic en \textbf{Nueva Convocatoria}.
+    \item Complete los campos:
+    \begin{itemize}
+        \item Nombre de la Convocatoria
+        \item Fecha de Inicio y Fin
+        \item Cupos Disponibles
+        \item Descripción y Requisitos
+    \end{itemize}
+    \item Guarde la convocatoria.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{gestion_convocatorias.png}
+    \caption{Lista de Convocatorias}
+    \label{fig:convocatorias}
+\end{figure}
+
+\subsection{Evaluación de Postulaciones}
+\begin{enumerate}
+    \item Acceda a \textbf{Postulaciones}.
+    \item Filtre por estado (Pendiente, Verificado, etc.).
+    \item Haga clic en una postulación para ver el detalle.
+    \item Revise los documentos adjuntos.
+    \item Asigne un estado: \textbf{Verificado}, \textbf{Apto para Entrevista}, o \textbf{Rechazado}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{evaluar_postulacion.png}
+    \caption{Detalle de Postulación para Evaluación}
+    \label{fig:evaluar_postulacion}
+\end{figure}
+
+\subsection{Programación y Evaluación de Entrevistas}
+\begin{enumerate}
+    \item Vaya a \textbf{Entrevistas}.
+    \item Para postulantes ``Apto para Entrevista'', programe fecha y hora.
+    \item Después de la entrevista, registre el resultado:
+    \begin{itemize}
+        \item \textbf{Apto}: El postulante pasa a ser Beneficiario.
+        \item \textbf{No Asistió}: Se marca como inasistente.
+    \end{itemize}
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{entrevistas.png}
+    \caption{Lista de Entrevistas Programadas}
+    \label{fig:entrevistas}
+\end{figure}
+
+\subsection{Lista de Beneficiarios}
+\begin{enumerate}
+    \item Acceda a \textbf{Beneficiarios}.
+    \item Visualice la lista de estudiantes con beneficio activo.
+    \item Use la barra de búsqueda para filtrar por nombre, código o DNI.
+    \item Puede \textbf{Exportar a Excel} la lista completa.
+    \item La columna \textbf{Faltas} muestra el conteo de inasistencias:
+    \begin{itemize}
+        \item \textcolor{green}{\textbf{0 Faltas}}: Sin problemas.
+        \item \textcolor{orange}{\textbf{1-2 Faltas}}: Advertencia.
+        \item \textcolor{red}{\textbf{3+ Faltas}}: Suspensión automática.
+    \end{itemize}
+    \item Haga clic en el contador de faltas para ver el detalle y \textbf{Quitar Falta} manualmente si corresponde.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{lista_beneficiarios.png}
+    \caption{Lista de Beneficiarios con Conteo de Faltas}
+    \label{fig:beneficiarios}
+\end{figure}
+
+\subsection{Gestión de Menús}
+\begin{enumerate}
+    \item Vaya a \textbf{Menús} $\rightarrow$ \textbf{Calendario}.
+    \item Haga clic en un día futuro para agregar menús.
+    \item Complete:
+    \begin{itemize}
+        \item Tipo: Desayuno, Almuerzo o Cena.
+        \item Hora de Inicio y Fin.
+        \item Descripción del menú (opcional).
+    \end{itemize}
+    \item Guarde el menú.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{calendario_menus.png}
+    \caption{Calendario de Administración de Menús}
+    \label{fig:calendario_menus}
+\end{figure}
+
+\textbf{Nota:} No se pueden crear menús para fechas pasadas.
+
+\subsection{Escáner de Asistencia (QR)}
+\begin{enumerate}
+    \item Acceda a \textbf{Escáner} desde el menú.
+    \item Seleccione la cámara a utilizar (si tiene varias).
+    \item Haga clic en \textbf{Iniciar Escáner}.
+    \item Apunte la cámara al código QR del estudiante.
+    \item El sistema validará automáticamente:
+    \begin{itemize}
+        \item Que el estudiante sea beneficiario activo.
+        \item Que tenga reserva para la comida actual.
+        \item Que esté dentro del horario permitido.
+    \end{itemize}
+    \item Si es válido, mostrará confirmación con el nombre del estudiante y el menú registrado.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.7\textwidth]{escaner_qr.png}
+    \caption{Escáner de Asistencia por QR}
+    \label{fig:escaner}
+\end{figure}
+
+\subsection{Lista de Asistencia del Día}
+\begin{enumerate}
+    \item Vaya a \textbf{Asistencia} $\rightarrow$ \textbf{Lista de Hoy}.
+    \item Visualice las reservas del día separadas por tipo de comida.
+    \item Use el \textbf{interruptor (switch)} para marcar manualmente como ``Presente'' o ``Ausente''.
+    \item Puede \textbf{Imprimir} o \textbf{Exportar a Excel} la lista.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{asistencia_hoy.png}
+    \caption{Lista de Asistencia del Día con Switch de Control}
+    \label{fig:asistencia_hoy}
+\end{figure}
+
+\subsection{Gestión de Justificaciones}
+\begin{enumerate}
+    \item Acceda a \textbf{Justificaciones}.
+    \item Visualice las solicitudes pendientes.
+    \item Haga clic en una justificación para ver el detalle.
+    \item Apruebe o Rechace la solicitud.
+    \item Si se aprueba, la inasistencia se convierte en ``Justificado''.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{gestionar_justificaciones.png}
+    \caption{Gestión de Justificaciones}
+    \label{fig:gestionar_justificaciones}
+\end{figure}
+
+% ============================================================
+\section{Procesos Automáticos}
+% ============================================================
+
+\subsection{Marcado Automático de Inasistencias}
+El sistema ejecuta un proceso automático que:
+
+\begin{enumerate}
+    \item Al finalizar el día, revisa las reservas ``Programadas'' que no fueron marcadas como ``Asistió''.
+    \item \textbf{Regla}: Si el estudiante asistió al menos a 1 comida del día, las demás reservas se \textbf{perdonan}.
+    \item Si no asistió a ninguna comida, las reservas se marcan como \textbf{Falta}.
+    \item Si un estudiante acumula \textbf{3 o más faltas}, se \textbf{suspende automáticamente}.
+\end{enumerate}
+
+\subsection{Marcado en Tiempo Real}
+Adicionalmente, el sistema puede ejecutar un proceso ``en tiempo real'' que:
+
+\begin{enumerate}
+    \item Busca menús cuya hora de fin ya pasó (HOY).
+    \item Marca como ``Falta'' a quienes quedaron en estado ``Programado''.
+\end{enumerate}
+
+Este proceso puede ejecutarse cada 15 minutos para mantener la lista actualizada.
+
+% ============================================================
+\section{Preguntas Frecuentes}
+% ============================================================
+
+\subsection{¿Qué hago si olvidé mi contraseña?}
+Contacte a la Oficina de Bienestar Universitario para solicitar el restablecimiento.
+
+\subsection{¿Puedo cancelar una reserva de comida?}
+Actualmente no es posible cancelar reservas. Si no puede asistir, solicite una justificación con anticipación.
+
+\subsection{¿Qué pasa si me suspenden?}
+Deberá acercarse a la Oficina de Bienestar Universitario para regularizar su situación.
+
+\subsection{¿El código QR tiene fecha de vencimiento?}
+El código QR es válido mientras su estado como beneficiario esté activo.
+
+% ============================================================
+\section{Soporte Técnico}
+% ============================================================
+
+Para cualquier problema técnico o consulta, contacte a:
+
+\begin{itemize}
+    \item \textbf{Oficina de Bienestar Universitario}
+    \item Correo: bienestar@unp.edu.pe
+    \item Teléfono: (073) 123456
+    \item Horario de Atención: Lunes a Viernes, 8:00 AM - 4:00 PM
+\end{itemize}
+
+\vspace{2cm}
+\hrule
+\vspace{0.5cm}
+\centering
+\textit{Documento generado el \today}
+
+\end{document}

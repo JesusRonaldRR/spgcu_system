@@ -1,0 +1,528 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+\definecolor{primaryblue}{HTML}{31436B}
+\definecolor{codebg}{HTML}{1E1E1E}
+\definecolor{codetext}{HTML}{D4D4D4}
+\definecolor{keyword}{HTML}{569CD6}
+\definecolor{string}{HTML}{CE9178}
+\definecolor{comment}{HTML}{6A9955}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small\color{codetext},
+    keywordstyle=\color{keyword},
+    stringstyle=\color{string},
+    commentstyle=\color{comment},
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray},
+    showstringspaces=false,
+    tabsize=4
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=primaryblue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Manual de Despliegue - SPGCU}}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{Universidad Nacional de Piura}
+
+\title{
+    \vspace{-2cm}
+    % \includegraphics[width=4cm]{logo_unp.png} \\ % Descomentar cuando tengas el logo
+    \vspace{1cm}
+    \vspace{1cm}
+    \textbf{\Huge Manual de Despliegue} \\
+    \vspace{0.5cm}
+    \textbf{\Large Sistema de Programación y Gestión del Comedor Universitario} \\
+    \vspace{0.3cm}
+    \textbf{(SPGCU)}
+}
+\author{
+    \textbf{Área de Sistemas} \\
+    Universidad Nacional de Piura
+}
+\date{Diciembre 2025}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introducción}
+% ============================================================
+
+Este manual describe los procedimientos para desplegar el Sistema SPGCU en diferentes entornos: desarrollo local y servidor de producción.
+
+\subsection{Stack Tecnológico}
+\begin{itemize}
+    \item \textbf{Backend}: Laravel 10 (PHP 8.1+)
+    \item \textbf{Frontend}: React 18 + Inertia.js
+    \item \textbf{Base de Datos}: MySQL 8.0 / MariaDB 10.6+
+    \item \textbf{Build Tool}: Vite
+    \item \textbf{Servidor Web}: Nginx (producción) / PHP Built-in (desarrollo)
+\end{itemize}
+
+\subsection{Repositorio del Proyecto}
+\begin{lstlisting}[language=bash]
+git clone https://github.com/universidad/spgcu_system.git
+cd spgcu_system
+\end{lstlisting}
+
+% ============================================================
+\section{Requisitos del Sistema}
+% ============================================================
+
+\subsection{Para Desarrollo Local (Windows/Mac/Linux)}
+\begin{itemize}
+    \item PHP 8.1 o superior
+    \item Composer 2.x
+    \item Node.js 18+ y NPM 9+
+    \item MySQL 8.0 o MariaDB 10.6+
+    \item Git
+\end{itemize}
+
+\subsection{Para Servidor de Producción (Ubuntu 22.04)}
+\begin{itemize}
+    \item Ubuntu Server 22.04 LTS
+    \item PHP 8.1-FPM con extensiones: mbstring, xml, bcmath, curl, zip, gd, mysql
+    \item Nginx 1.18+
+    \item MySQL 8.0 o MariaDB 10.6+
+    \item Certbot (para SSL)
+    \item Supervisor (para colas)
+\end{itemize}
+
+% ============================================================
+\section{Despliegue en Desarrollo Local}
+% ============================================================
+
+\subsection{Paso 1: Clonar el Repositorio}
+\begin{lstlisting}[language=bash]
+git clone https://github.com/universidad/spgcu_system.git
+cd spgcu_system
+\end{lstlisting}
+
+\subsection{Paso 2: Instalar Dependencias PHP}
+\begin{lstlisting}[language=bash]
+composer install
+\end{lstlisting}
+
+\subsection{Paso 3: Instalar Dependencias JavaScript}
+\begin{lstlisting}[language=bash]
+npm install
+\end{lstlisting}
+
+\subsection{Paso 4: Configurar Variables de Entorno}
+\begin{lstlisting}[language=bash]
+cp .env.example .env
+php artisan key:generate
+\end{lstlisting}
+
+Editar el archivo \texttt{.env} con los siguientes valores:
+
+\begin{lstlisting}
+APP_NAME="SPGCU"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=spgcu_db
+DB_USERNAME=root
+DB_PASSWORD=tu_password
+\end{lstlisting}
+
+\subsection{Paso 5: Crear Base de Datos}
+\begin{lstlisting}[language=sql]
+CREATE DATABASE spgcu_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+\end{lstlisting}
+
+\subsection{Paso 6: Ejecutar Migraciones y Seeders}
+\begin{lstlisting}[language=bash]
+php artisan migrate --seed
+\end{lstlisting}
+
+\subsection{Paso 7: Iniciar Servidores de Desarrollo}
+
+\textbf{Terminal 1 - Backend Laravel:}
+\begin{lstlisting}[language=bash]
+php artisan serve
+\end{lstlisting}
+
+\textbf{Terminal 2 - Frontend Vite:}
+\begin{lstlisting}[language=bash]
+npm run dev
+\end{lstlisting}
+
+\subsection{Paso 8: Acceder al Sistema}
+Abrir navegador en: \texttt{http://localhost:8000}
+
+\begin{tcolorbox}[colback=blue!5,colframe=blue!50,title=Credenciales por Defecto]
+\textbf{Administrador:} \\
+DNI: 12345678 \\
+Contraseña: password123
+\end{tcolorbox}
+
+% ============================================================
+\section{Despliegue en Producción (Ubuntu + Nginx)}
+% ============================================================
+
+\subsection{Paso 1: Preparar el Servidor}
+
+\subsubsection{Actualizar Sistema}
+\begin{lstlisting}[language=bash]
+sudo apt update && sudo apt upgrade -y
+\end{lstlisting}
+
+\subsubsection{Instalar PHP y Extensiones}
+\begin{lstlisting}[language=bash]
+sudo apt install -y php8.1-fpm php8.1-cli php8.1-mysql \
+    php8.1-mbstring php8.1-xml php8.1-bcmath php8.1-curl \
+    php8.1-zip php8.1-gd php8.1-intl
+\end{lstlisting}
+
+\subsubsection{Instalar Nginx}
+\begin{lstlisting}[language=bash]
+sudo apt install -y nginx
+\end{lstlisting}
+
+\subsubsection{Instalar MySQL}
+\begin{lstlisting}[language=bash]
+sudo apt install -y mysql-server
+sudo mysql_secure_installation
+\end{lstlisting}
+
+\subsubsection{Instalar Composer}
+\begin{lstlisting}[language=bash]
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+\end{lstlisting}
+
+\subsubsection{Instalar Node.js}
+\begin{lstlisting}[language=bash]
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+\end{lstlisting}
+
+\subsection{Paso 2: Clonar y Configurar el Proyecto}
+
+\begin{lstlisting}[language=bash]
+cd /var/www
+sudo git clone https://github.com/universidad/spgcu_system.git
+sudo chown -R www-data:www-data spgcu_system
+cd spgcu_system
+\end{lstlisting}
+
+\subsection{Paso 3: Instalar Dependencias}
+\begin{lstlisting}[language=bash]
+composer install --optimize-autoloader --no-dev
+npm install
+npm run build
+\end{lstlisting}
+
+\subsection{Paso 4: Configurar Variables de Entorno}
+\begin{lstlisting}[language=bash]
+cp .env.example .env
+php artisan key:generate
+nano .env
+\end{lstlisting}
+
+Configurar para producción:
+\begin{lstlisting}
+APP_NAME="SPGCU"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://spgcu.unp.edu.pe
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=spgcu_production
+DB_USERNAME=spgcu_user
+DB_PASSWORD=ContraseñaSegura123!
+
+QUEUE_CONNECTION=database
+SESSION_DRIVER=database
+\end{lstlisting}
+
+\subsection{Paso 5: Configurar Base de Datos}
+\begin{lstlisting}[language=bash]
+sudo mysql -u root -p
+\end{lstlisting}
+
+\begin{lstlisting}[language=sql]
+CREATE DATABASE spgcu_production 
+    CHARACTER SET utf8mb4 
+    COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'spgcu_user'@'localhost' 
+    IDENTIFIED BY 'ContraseñaSegura123!';
+
+GRANT ALL PRIVILEGES ON spgcu_production.* 
+    TO 'spgcu_user'@'localhost';
+
+FLUSH PRIVILEGES;
+EXIT;
+\end{lstlisting}
+
+\subsection{Paso 6: Ejecutar Migraciones}
+\begin{lstlisting}[language=bash]
+php artisan migrate --seed --force
+\end{lstlisting}
+
+\subsection{Paso 7: Optimizar Laravel}
+\begin{lstlisting}[language=bash]
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan storage:link
+\end{lstlisting}
+
+\subsection{Paso 8: Configurar Permisos}
+\begin{lstlisting}[language=bash]
+sudo chown -R www-data:www-data /var/www/spgcu_system
+sudo chmod -R 755 /var/www/spgcu_system
+sudo chmod -R 775 /var/www/spgcu_system/storage
+sudo chmod -R 775 /var/www/spgcu_system/bootstrap/cache
+\end{lstlisting}
+
+\subsection{Paso 9: Configurar Nginx}
+
+Crear archivo de configuración:
+\begin{lstlisting}[language=bash]
+sudo nano /etc/nginx/sites-available/spgcu
+\end{lstlisting}
+
+Contenido:
+\begin{lstlisting}
+server {
+    listen 80;
+    server_name spgcu.unp.edu.pe;
+    root /var/www/spgcu_system/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+\end{lstlisting}
+
+Activar configuración:
+\begin{lstlisting}[language=bash]
+sudo ln -s /etc/nginx/sites-available/spgcu /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+\end{lstlisting}
+
+\subsection{Paso 10: Configurar SSL con Certbot}
+\begin{lstlisting}[language=bash]
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d spgcu.unp.edu.pe
+\end{lstlisting}
+
+\subsection{Paso 11: Configurar Tareas Programadas (Cron)}
+\begin{lstlisting}[language=bash]
+sudo crontab -e
+\end{lstlisting}
+
+Agregar:
+\begin{lstlisting}
+* * * * * cd /var/www/spgcu_system && php artisan schedule:run >> /dev/null 2>&1
+\end{lstlisting}
+
+\subsection{Paso 12: Configurar Supervisor para Colas}
+
+Crear configuración:
+\begin{lstlisting}[language=bash]
+sudo apt install -y supervisor
+sudo nano /etc/supervisor/conf.d/spgcu-worker.conf
+\end{lstlisting}
+
+Contenido:
+\begin{lstlisting}
+[program:spgcu-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/spgcu_system/artisan queue:work --sleep=3 --tries=3
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/spgcu_system/storage/logs/worker.log
+\end{lstlisting}
+
+Activar:
+\begin{lstlisting}[language=bash]
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start spgcu-worker:*
+\end{lstlisting}
+
+% ============================================================
+\section{Comandos de Mantenimiento}
+% ============================================================
+
+\subsection{Limpiar Caché}
+\begin{lstlisting}[language=bash]
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+\end{lstlisting}
+
+\subsection{Actualizar Aplicación}
+\begin{lstlisting}[language=bash]
+cd /var/www/spgcu_system
+git pull origin main
+composer install --optimize-autoloader --no-dev
+npm install && npm run build
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+sudo supervisorctl restart spgcu-worker:*
+\end{lstlisting}
+
+\subsection{Procesar Inasistencias Manualmente}
+\begin{lstlisting}[language=bash]
+# Procesar el dia anterior
+php artisan comedor:marcar-inasistencias
+
+# Procesar menus terminados hoy (tiempo real)
+php artisan comedor:marcar-inasistencias --realtime
+\end{lstlisting}
+
+\subsection{Ver Logs}
+\begin{lstlisting}[language=bash]
+tail -f /var/www/spgcu_system/storage/logs/laravel.log
+\end{lstlisting}
+
+\subsection{Backup de Base de Datos}
+\begin{lstlisting}[language=bash]
+mysqldump -u spgcu_user -p spgcu_production > backup_$(date +%Y%m%d).sql
+\end{lstlisting}
+
+% ============================================================
+\section{Resolución de Problemas Comunes}
+% ============================================================
+
+\subsection{Error 500 - Internal Server Error}
+\begin{enumerate}
+    \item Verificar permisos de \texttt{storage/} y \texttt{bootstrap/cache/}.
+    \item Revisar logs: \texttt{tail -f storage/logs/laravel.log}.
+    \item Limpiar caché: \texttt{php artisan optimize:clear}.
+\end{enumerate}
+
+\subsection{Página en Blanco}
+\begin{enumerate}
+    \item Verificar que \texttt{APP\_DEBUG=true} temporalmente.
+    \item Verificar configuración de PHP-FPM.
+    \item Revisar logs de Nginx: \texttt{/var/log/nginx/error.log}.
+\end{enumerate}
+
+\subsection{Error de Conexión a Base de Datos}
+\begin{enumerate}
+    \item Verificar credenciales en \texttt{.env}.
+    \item Verificar que MySQL esté corriendo: \texttt{systemctl status mysql}.
+    \item Probar conexión: \texttt{mysql -u spgcu\_user -p}.
+\end{enumerate}
+
+\subsection{Assets No Cargan (CSS/JS)}
+\begin{enumerate}
+    \item Ejecutar \texttt{npm run build}.
+    \item Verificar \texttt{APP\_URL} en \texttt{.env}.
+    \item Limpiar caché del navegador.
+\end{enumerate}
+
+\subsection{Escáner QR No Funciona}
+\begin{enumerate}
+    \item El escáner requiere \textbf{HTTPS} en producción.
+    \item Verificar permisos de cámara en el navegador.
+    \item Probar en \texttt{localhost} primero.
+\end{enumerate}
+
+% ============================================================
+\section{Diagrama de Arquitectura}
+% ============================================================
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{arquitectura.png}
+    \caption{Arquitectura del Sistema SPGCU}
+    \label{fig:arquitectura}
+\end{figure}
+
+\begin{verbatim}
++------------------+     +------------------+     +------------------+
+|   Cliente Web    | --> |      Nginx       | --> |   Laravel App    |
+| (Navegador/Móvil)|     | (Reverse Proxy)  |     | (PHP-FPM 8.1)    |
++------------------+     +------------------+     +------------------+
+                                                          |
+                         +------------------+             |
+                         |     MySQL 8.0    | <-----------+
+                         | (Base de Datos)  |
+                         +------------------+
+\end{verbatim}
+
+% ============================================================
+\section{Contacto y Soporte}
+% ============================================================
+
+\begin{itemize}
+    \item \textbf{Área de Sistemas - UNP}
+    \item Correo: sistemas@unp.edu.pe
+    \item Teléfono: (073) 123456 Anexo 200
+\end{itemize}
+
+\vspace{2cm}
+\hrule
+\vspace{0.5cm}
+\centering
+\textit{Documento generado el \today}
+
+\end{document}
