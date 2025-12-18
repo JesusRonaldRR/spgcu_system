@@ -433,9 +433,10 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                 <h4 className="text-sm font-bold text-blue-800 mb-2">2. Confirmación de Asistencia</h4>
                                 <InputLabel value="¿El estudiante asistió a la entrevista?" className="mb-1" />
                                 <select
-                                    className="w-full border-gray-300 rounded text-base font-medium"
+                                    className="w-full border-gray-300 rounded text-base font-medium disabled:bg-gray-100"
                                     value={evalData.estado}
                                     onChange={e => setEvalData('estado', e.target.value)}
+                                    disabled={evaluating.estado !== 'programada'}
                                 >
                                     <option value="programada">-- Seleccione --</option>
                                     <option value="completada">SÍ, asistió</option>
@@ -452,10 +453,11 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                     <div className="mb-4">
                                         <InputLabel value="Resultado (Dictamen)" />
                                         <select
-                                            className="w-full border-gray-300 rounded text-sm bg-indigo-50 font-bold text-indigo-900"
+                                            className="w-full border-gray-300 rounded text-sm bg-indigo-50 font-bold text-indigo-900 disabled:bg-gray-100 disabled:text-gray-500"
                                             value={evalData.resultado}
                                             onChange={e => setEvalData('resultado', e.target.value)}
                                             required={evalData.estado === 'completada'}
+                                            disabled={evaluating.estado !== 'programada'}
                                         >
                                             <option value="" disabled>Seleccione un resultado...</option>
                                             <option value="apto">APTO (Aprobado)</option>
@@ -468,19 +470,31 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
                                     <div className="mb-4">
                                         <InputLabel value="Observaciones / Comentarios" />
                                         <textarea
-                                            className="w-full border-gray-300 rounded text-sm h-24"
+                                            className="w-full border-gray-300 rounded text-sm h-24 disabled:bg-gray-100"
                                             value={evalData.observaciones}
                                             onChange={e => setEvalData('observaciones', e.target.value)}
                                             placeholder="Ingrese detalles sobre la entrevista..."
+                                            disabled={evaluating.estado !== 'programada'}
                                         ></textarea>
                                         <InputError message={evalErrors.observaciones} className="mt-2" />
                                     </div>
                                 </div>
                             )}
 
+                            {evaluating.estado !== 'programada' && (
+                                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-yellow-800 text-xs flex items-center mb-4">
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H10m4-6a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    Esta entrevista ya ha sido procesada y se encuentra en el historial (Lectura).
+                                </div>
+                            )}
+
                             <div className="flex justify-end space-x-2 mt-6 border-t pt-4">
-                                <SecondaryButton onClick={() => setEvaluating(null)}>Cancelar</SecondaryButton>
-                                <PrimaryButton type="submit" disabled={evalProcessing}>Guardar Finalizar</PrimaryButton>
+                                <SecondaryButton onClick={() => setEvaluating(null)}>
+                                    {evaluating.estado !== 'programada' ? 'Cerrar' : 'Cancelar'}
+                                </SecondaryButton>
+                                {evaluating.estado === 'programada' && (
+                                    <PrimaryButton type="submit" disabled={evalProcessing}>Guardar Finalizar</PrimaryButton>
+                                )}
                             </div>
                         </form>
                     )}

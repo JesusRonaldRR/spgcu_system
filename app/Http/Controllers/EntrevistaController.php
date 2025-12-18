@@ -104,6 +104,10 @@ class EntrevistaController extends Controller
             abort(403);
         }
 
+        if ($entrevista->estado !== 'programada') {
+            return back()->withErrors(['error' => 'No se puede modificar una entrevista que ya ha sido finalizada o procesada.']);
+        }
+
         $request->validate([
             'estado' => 'required|in:pendiente,programada,completada,no_asistio',
             'resultado' => 'nullable|in:apto,no_apto',
