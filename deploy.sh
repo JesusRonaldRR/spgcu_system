@@ -22,8 +22,9 @@ echo "--- 🔐 Setting Permissions ---"
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# 4. Migrate Database
-echo "--- 🗄 Running Migrations ---"
+# 4. Generate Key & Migrate Database
+echo "--- 🗄 Generating Key & Running Migrations ---"
+php artisan key:generate
 php artisan migrate --force
 
 # 5. Clear & Cache Config

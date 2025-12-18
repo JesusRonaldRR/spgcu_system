@@ -103,8 +103,26 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
         });
     };
 
+    const isMenuExpired = (dateStr, horaFin) => {
+        const now = new Date();
+        const serverToday = now.toISOString().split('T')[0];
+        const serverNowTime = now.toTimeString().substring(0, 5);
+
+        if (dateStr < serverToday) return true;
+        if (dateStr === serverToday && horaFin && horaFin < serverNowTime) return true;
+        return false;
+    };
+
+    const isExpired = editingMenu ? isMenuExpired(editingMenu.fecha, editingMenu.hora_fin) : (data.fecha && data.fecha < todayStr);
+
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (isExpired) {
+            alert('No se puede modificar un menú que ya ha expirado.');
+            return;
+        }
+
         const options = {
             onSuccess: () => {
                 setShowModal(false);
@@ -121,6 +139,10 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
     };
 
     const handleDelete = () => {
+        if (isExpired) {
+            alert('No se puede eliminar un menú que ya ha expirado.');
+            return;
+        }
         if (confirm('¿Eliminar este menú?')) {
             router.delete(route('admin.menus.destroy', editingMenu.id), {
                 onSuccess: () => {
@@ -175,18 +197,18 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
                         {/* Days Grid */}
                         <div className="grid grid-cols-7 border-t">
                             {calendarDays.map((cell, idx) => {
-                                const isPast = !cell.isEmpty && cell.date < todayStr;
+                                const past = !cell.isEmpty && isMenuExpired(cell.date, '23:59');
                                 return (
                                     <div
                                         key={idx}
                                         className={`min-h-[120px] border-b border-r p-2 
                                             ${cell.isEmpty ? 'bg-gray-50' : ''} 
-                                            ${isPast ? 'bg-gray-100 opacity-60' : 'bg-white hover:bg-blue-50/30 cursor-pointer'}`}
-                                        onClick={() => !cell.isEmpty && !isPast && openCreateModal(cell.date)}
+                                            ${past ? 'bg-gray-100 opacity-60' : 'bg-white hover:bg-blue-50/30 cursor-pointer'}`}
+                                        onClick={() => !cell.isEmpty && !past && openCreateModal(cell.date)}
                                     >
                                         {!cell.isEmpty && (
                                             <>
-                                                <div className={`text-right text-sm font-bold mb-1 ${cell.date === todayStr ? 'text-blue-600' : isPast ? 'text-gray-300' : 'text-gray-400'}`}>
+                                                <div className={`text-right text-sm font-bold mb-1 ${cell.date === todayStr ? 'text-blue-600' : past ? 'text-gray-300' : 'text-gray-400'}`}>
                                                     {cell.day}
                                                 </div>
                                                 <div className="space-y-1">
@@ -195,13 +217,17 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
                                                     ) : (
                                                         cell.menus.map(menu => {
                                                             const cfg = mealConfig[menu.tipo] || { icon: '?', label: menu.tipo, bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-700' };
+                                                            const menuExp = isMenuExpired(menu.fecha, menu.hora_fin);
                                                             return (
                                                                 <div
                                                                     key={menu.id}
-                                                                    onClick={(e) => { e.stopPropagation(); if (!isPast) openEditModal(menu); }}
-                                                                    className={`text-xs p-1.5 rounded border-l-4 ${cfg.bg} ${cfg.border} ${cfg.text} ${isPast ? 'cursor-not-allowed' : 'cursor-pointer hover:shadow'}`}
+                                                                    onClick={(e) => { e.stopPropagation(); openEditModal(menu); }}
+                                                                    className={`text-xs p-1.5 rounded border-l-4 ${cfg.bg} ${cfg.border} ${cfg.text} ${menuExp ? 'opacity-50 grayscale' : 'cursor-pointer hover:shadow'}`}
                                                                 >
-                                                                    <div className="font-semibold">{cfg.icon} {cfg.label}</div>
+                                                                    <div className="font-semibold flex justify-between">
+                                                                        <span>{cfg.icon} {cfg.label}</span>
+                                                                        {menuExp && <span className="text-[9px] font-bold text-red-500">EXP</span>}
+                                                                    </div>
                                                                     <div className="truncate opacity-70">{menu.descripcion}</div>
                                                                 </div>
                                                             );
@@ -223,9 +249,16 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold">{editingMenu ? 'Editar Menú' : 'Nuevo Menú'}</h3>
+                            <h3 className="text-lg font-bold">{editingMenu ? 'Consultar/Editar Menú' : 'Nuevo Menú'}</h3>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
                         </div>
+
+                        {isExpired && (
+                            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-2 rounded mb-4 flex items-center">
+                                <span className="mr-2 text-base">ℹ️</span>
+                                Este menú ya ha expirado. Se encuentra en modo **solo lectura** para preservar la integridad de las asistencias.
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
@@ -234,16 +267,18 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
                                     <input
                                         type="date"
                                         value={data.fecha}
+                                        disabled={isExpired}
                                         onChange={e => setData('fecha', e.target.value)}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
+                                        className="w-full border-gray-300 rounded-md shadow-sm disabled:bg-gray-100"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                                     <select
                                         value={data.tipo}
+                                        disabled={isExpired}
                                         onChange={e => handleTypeChange(e.target.value)}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
+                                        className="w-full border-gray-300 rounded-md shadow-sm disabled:bg-gray-100"
                                     >
                                         <option value="desayuno">Desayuno</option>
                                         <option value="almuerzo">Almuerzo</option>
@@ -256,8 +291,9 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                                 <textarea
                                     value={data.descripcion}
+                                    disabled={isExpired}
                                     onChange={e => setData('descripcion', e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm h-20"
+                                    className="w-full border-gray-300 rounded-md shadow-sm h-20 disabled:bg-gray-100"
                                     placeholder="Ej: Arroz con pollo, ensalada..."
                                 />
                                 {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
@@ -266,22 +302,26 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Hora Inicio</label>
-                                    <input type="time" value={data.hora_inicio} onChange={e => setData('hora_inicio', e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm" />
+                                    <input type="time" disabled={isExpired} value={data.hora_inicio} onChange={e => setData('hora_inicio', e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Hora Fin</label>
-                                    <input type="time" value={data.hora_fin} onChange={e => setData('hora_fin', e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm" />
+                                    <input type="time" disabled={isExpired} value={data.hora_fin} onChange={e => setData('hora_fin', e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm disabled:bg-gray-100" />
                                 </div>
                             </div>
 
                             <div className="flex justify-end gap-2 pt-4 border-t">
-                                {editingMenu && (
+                                {editingMenu && !isExpired && (
                                     <button type="button" onClick={handleDelete} className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200">Eliminar</button>
                                 )}
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Cancelar</button>
-                                <button type="submit" disabled={processing} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                                    {editingMenu ? 'Actualizar' : 'Guardar'}
+                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                                    {isExpired ? 'Cerrar' : 'Cancelar'}
                                 </button>
+                                {!isExpired && (
+                                    <button type="submit" disabled={processing} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                        {editingMenu ? 'Actualizar' : 'Guardar'}
+                                    </button>
+                                )}
                             </div>
                         </form>
                     </div>

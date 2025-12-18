@@ -113,6 +113,16 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
             <div className="py-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+                    {auth.user.estado === 'suspendido' && (
+                        <div className="bg-red-600 text-white p-4 rounded-lg shadow-lg mb-6 flex items-center animate-pulse">
+                            <span className="text-2xl mr-3">🚫</span>
+                            <div>
+                                <h3 className="font-bold">BENEFICIO SUSPENDIDO</h3>
+                                <p className="text-sm opacity-90">Has acumulado 3 o más faltas. Contacta con Bienestar Universitario para regularizar tu situación.</p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Info Banner */}
                     <div className="bg-white rounded-lg shadow p-4 mb-6 flex justify-between items-center border-l-4 border-green-500">
                         <div>
@@ -189,9 +199,10 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
                                                     {(cell.date >= serverDate) && (
                                                         <button
                                                             onClick={() => saveDay(cell.date)}
-                                                            className="bg-blue-600 text-white text-xs px-2 py-1 rounded hover:bg-blue-700"
+                                                            disabled={auth.user.estado === 'suspendido'}
+                                                            className={`text-white text-xs px-2 py-1 rounded transition-colors ${auth.user.estado === 'suspendido' ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                                                         >
-                                                            Guardar
+                                                            {auth.user.estado === 'suspendido' ? 'Bloqueado' : 'Guardar'}
                                                         </button>
                                                     )}
                                                     {cell.menus.every(m => !selectedMenuIds.includes(m.id)) && (

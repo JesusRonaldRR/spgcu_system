@@ -257,9 +257,9 @@ class AsistenciaController extends Controller
     public function procesarFaltas()
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('comedor:marcar-faltas');
+            \Illuminate\Support\Facades\Artisan::call('comedor:marcar-inasistencias', ['--realtime' => true]);
             $output = \Illuminate\Support\Facades\Artisan::output();
-            return back()->with('success', 'Proceso de faltas ejecutado correctamente.');
+            return back()->with('success', 'Proceso de faltas ejecutado correctamente (Real-time).');
         } catch (\Exception $e) {
             return back()->withErrors(['message' => 'Error al procesar faltas: ' . $e->getMessage()]);
         }

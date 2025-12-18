@@ -133,6 +133,14 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu)
     {
+        $now = Carbon::now();
+        if (
+            $menu->fecha->format('Y-m-d') < $now->format('Y-m-d') ||
+            ($menu->fecha->format('Y-m-d') === $now->format('Y-m-d') && $menu->hora_fin < $now->format('H:i:s'))
+        ) {
+            return back()->withErrors(['error' => 'No se puede modificar un menú que ya ha expirado.']);
+        }
+
         $request->validate([
             'descripcion' => 'required|string|max:500',
             'hora_inicio' => 'required',
@@ -149,6 +157,14 @@ class MenuController extends Controller
      */
     public function destroy(Menu $menu)
     {
+        $now = Carbon::now();
+        if (
+            $menu->fecha->format('Y-m-d') < $now->format('Y-m-d') ||
+            ($menu->fecha->format('Y-m-d') === $now->format('Y-m-d') && $menu->hora_fin < $now->format('H:i:s'))
+        ) {
+            return back()->withErrors(['error' => 'No se puede eliminar un menú que ya ha expirado o está en curso.']);
+        }
+
         $menu->delete();
         return back()->with('success', 'Menú eliminado.');
     }
@@ -165,6 +181,10 @@ class MenuController extends Controller
             'menus.*' => 'exists:menus,id',
         ]);
 
+        if ($user->estado === 'suspendido') {
+            return back()->withErrors(['error' => 'Tu cuenta se encuentra suspendida por exceso de faltas.']);
+        }
+
         if (count($request->menus) > 3) {
             return back()->withErrors(['menus' => 'Máximo 3 comidas por día.']);
         }
@@ -177,9 +197,20 @@ class MenuController extends Controller
 
         $selectedIds = $request->menus;
 
-        // Remove unselected (only if still 'programado')
+        $now = Carbon::now();
+        $today = $now->format('Y-m-d');
+        $currentTime = $now->format('H:i:s');
+
+        // Remove unselected (only if still 'programado' AND NOT EXPIRED)
         foreach ($existing as $reservation) {
+            $menu = $reservation->menu;
+            $isExpired = ($menu->fecha->format('Y-m-d') < $today) ||
+                ($menu->fecha->format('Y-m-d') === $today && $menu->hora_fin < $currentTime);
+
             if (!in_array($reservation->menu_id, $selectedIds) && $reservation->estado === 'programado') {
+                if ($isExpired) {
+                    return back()->withErrors(['menus' => "No puedes modificar una reserva que ya ha finalizado ({$menu->tipo})."]);
+                }
                 $reservation->delete();
             }
         }
@@ -187,6 +218,14 @@ class MenuController extends Controller
         // Add new
         foreach ($selectedIds as $menuId) {
             if (!$existing->contains('menu_id', $menuId)) {
+                $menu = Menu::findOrFail($menuId);
+                $isExpired = ($menu->fecha->format('Y-m-d') < $today) ||
+                    ($menu->fecha->format('Y-m-d') === $today && $menu->hora_fin < $currentTime);
+
+                if ($isExpired) {
+                    return back()->withErrors(['menus' => "No puedes reservar un menú que ya ha finalizado ({$menu->tipo})."]);
+                }
+
                 \App\Models\ProgramacionComedor::create([
                     'usuario_id' => $user->id,
                     'menu_id' => $menuId,

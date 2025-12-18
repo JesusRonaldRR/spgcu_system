@@ -123,18 +123,26 @@ class MarcarInasistencias extends Command
     private function checkSuspensions($userIds)
     {
         foreach ($userIds as $userId) {
+            $user = User::find($userId);
+            if (!$user)
+                continue;
+
+            // Count total accumulated faults
             $faults = ProgramacionComedor::where('usuario_id', $userId)
                 ->where('estado', 'falta')
                 ->count();
 
             if ($faults >= 3) {
-                $user = User::find($userId);
-                if ($user && $user->estado !== 'suspendido') {
+                if ($user->estado !== 'suspendido') {
                     $user->estado = 'suspendido';
                     $user->save();
-                    $this->error("User {$userId} suspendido por acumular {$faults} faltas.");
-                    Log::warning("User {$userId} suspended due to {$faults} faults.");
+                    $this->error("User #{$userId} ({$user->codigo}): SUSPENDIDO por acumular {$faults} faltas.");
+                    Log::warning("User #{$userId} suspended automatically by system due to {$faults} faults.");
+                } else {
+                    $this->info("User #{$userId}: Ya se encuentra suspendido ({$faults} faltas).");
                 }
+            } else {
+                $this->info("User #{$userId}: Tiene {$faults} faltas acumuladas.");
             }
         }
     }
