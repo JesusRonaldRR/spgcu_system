@@ -18,7 +18,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
     // 1. Evaluation State
     const [evaluating, setEvaluating] = useState(null);
     const [showDetails, setShowDetails] = useState(false);
-    const { data: evalData, setData: setEvalData, patch: patchEval, processing: evalProcessing, errors: evalErrors, reset: resetEval } = useForm({
+    const { data: evalData, setData: setEvalData, put: putEval, processing: evalProcessing, errors: evalErrors, reset: resetEval } = useForm({
         estado: 'programada',
         resultado: '',
         tipo: 'presencial',
@@ -39,7 +39,7 @@ export default function Index({ auth, postulacion, activePostulacion, entrevista
 
     const submitEvaluation = (e) => {
         e.preventDefault();
-        patchEval(route('citas.update', evaluating.id), {
+        putEval(route('citas.update.put', evaluating.id), {
             onSuccess: () => {
                 setEvaluating(null);
                 resetEval();

@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('postulaciones', \App\Http\Controllers\PostulacionController::class)->parameters(['postulaciones' => 'postulacion']);
     Route::resource('justificaciones', \App\Http\Controllers\JustificacionController::class)->parameters(['justificaciones' => 'justificacion']);
     Route::resource('citas', \App\Http\Controllers\EntrevistaController::class)->parameters(['citas' => 'entrevista']);
+    Route::put('/citas/{entrevista}', [\App\Http\Controllers\EntrevistaController::class, 'update'])->name('citas.update.put');
     Route::get('/comedor/horario', [\App\Http\Controllers\MenuController::class, 'index'])->name('comedor.horario');
     Route::post('/comedor/programar', [\App\Http\Controllers\MenuController::class, 'programar'])->name('menus.programar');
 
