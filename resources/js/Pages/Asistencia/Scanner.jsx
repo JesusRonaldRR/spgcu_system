@@ -47,15 +47,19 @@ export default function Scanner({ auth }) {
                     d.label.toLowerCase().includes('rear') ||
                     d.label.toLowerCase().includes('environment')
                 );
-                setSelectedCamera(backCam ? backCam.id : devices[0].id);
+                const defaultCamId = backCam ? backCam.id : devices[0].id;
+                setSelectedCamera(defaultCamId);
                 setScanError(null);
+                return devices; // Return for direct usage
             } else {
                 setScanError("No se encontraron cámaras conectadas al dispositivo.");
                 setTechnicalError("Html5Qrcode.getCameras() returned empty list. Driver issue or no hardware detected.");
+                return [];
             }
         } catch (err) {
             console.error("Error getting cameras:", err);
             handleCameraError(err, "Error al detectar cámaras");
+            return [];
         }
     };
 
@@ -96,12 +100,27 @@ export default function Scanner({ auth }) {
         setScanError(null);
         setTechnicalError(null);
 
-        if (!selectedCamera) {
-            if (cameras.length === 0) {
-                // Try re-initializing if no cameras
-                await initializeCameras();
-                if (cameras.length === 0) return; // Still failed
+        let currentCamera = selectedCamera;
+        let currentCamerasList = cameras;
+
+        // Auto-recovery if state is empty
+        if (!currentCamera || currentCamerasList.length === 0) {
+            const devices = await initializeCameras();
+            currentCamerasList = devices;
+            if (devices.length > 0) {
+                // Try to pick back camera again or first one
+                const backCam = devices.find(d =>
+                    d.label.toLowerCase().includes('back') ||
+                    d.label.toLowerCase().includes('trasera')
+                );
+                currentCamera = backCam ? backCam.id : devices[0].id;
+                setSelectedCamera(currentCamera);
             }
+        }
+
+        if (!currentCamera) {
+            setScanError("No se pudo iniciar la cámara. No se detectaron dispositivos.");
+            return;
         }
 
         // Double check secure context
@@ -128,13 +147,13 @@ export default function Scanner({ auth }) {
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0,
                 videoConstraints: {
-                    deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
-                    facingMode: selectedCamera ? undefined : "environment" // Fallback
+                    deviceId: { exact: currentCamera },
+                    facingMode: undefined
                 }
             };
 
             await html5QrCode.start(
-                selectedCamera || { facingMode: "environment" },
+                { deviceId: { exact: currentCamera } }, // Pass deviceId constraint directly
                 config,
                 onScanSuccess,
                 onScanFailure
