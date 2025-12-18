@@ -7,9 +7,12 @@ import axios from 'axios';
 export default function Scanner({ auth }) {
     const [scanResult, setScanResult] = useState(null);
     const [scanError, setScanError] = useState(null);
+    const [technicalError, setTechnicalError] = useState(null); // For detailed debugging
     const [isScanning, setIsScanning] = useState(false);
     const [cameras, setCameras] = useState([]);
     const [selectedCamera, setSelectedCamera] = useState(null);
+    const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+
     const html5QrCodeRef = useRef(null);
     const lastScannedRef = useRef(null);
 
@@ -17,135 +20,184 @@ export default function Scanner({ auth }) {
     useEffect(() => {
         // SECURITY CHECK: Browsers block camera on HTTP (except localhost)
         if (!window.isSecureContext && window.location.hostname !== 'localhost') {
-            setScanError("⚠️ Error de Seguridad: El acceso a la cámara requiere una conexión SEGURA (HTTPS). El navegador bloquea la cámara en conexiones HTTP simples por privacidad.");
+            const msg = "⚠️ Error Crítico de Seguridad: El navegador ha bloqueado el acceso a la cámara porque la conexión no es segura (HTTPS).";
+            setScanError(msg);
+            setTechnicalError("Secure Context Required: window.isSecureContext is false. Camera access is blocked by browser policy on non-localhost HTTP.");
             return;
         }
 
-        const initCameras = async () => {
-            try {
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length) {
-                    setCameras(devices);
-                    // Prefer back camera
-                    const backCam = devices.find(d =>
-                        d.label.toLowerCase().includes('back') ||
-                        d.label.toLowerCase().includes('trasera') ||
-                        d.label.toLowerCase().includes('rear')
-                    );
-                    setSelectedCamera(backCam ? backCam.id : devices[0].id);
-                } else {
-                    setScanError("No se encontraron cámaras conectadas al dispositivo.");
-                }
-            } catch (err) {
-                console.error("Error getting cameras:", err);
-                if (err.toString().includes("Permission")) {
-                    setScanError("Permiso de cámara denegado. Por favor, permite el acceso en tu navegador.");
-                } else {
-                    setScanError("Error al acceder a la cámara. Verifica que no esté siendo usada por otra pestaña.");
-                }
-            }
-        };
-
-        initCameras();
+        initializeCameras();
 
         return () => {
-            if (html5QrCodeRef.current) {
-                html5QrCodeRef.current.stop().catch(e => console.error("Error on cleanup:", e));
-            }
+            stopScannerCleanup();
         };
     }, []);
 
+    const initializeCameras = async () => {
+        try {
+            // First, try to get permissions implicitly by listing cameras
+            const devices = await Html5Qrcode.getCameras();
+
+            if (devices && devices.length) {
+                setCameras(devices);
+                // Prefer back camera
+                const backCam = devices.find(d =>
+                    d.label.toLowerCase().includes('back') ||
+                    d.label.toLowerCase().includes('trasera') ||
+                    d.label.toLowerCase().includes('rear') ||
+                    d.label.toLowerCase().includes('environment')
+                );
+                setSelectedCamera(backCam ? backCam.id : devices[0].id);
+                setScanError(null);
+            } else {
+                setScanError("No se encontraron cámaras conectadas al dispositivo.");
+                setTechnicalError("Html5Qrcode.getCameras() returned empty list. Driver issue or no hardware detected.");
+            }
+        } catch (err) {
+            console.error("Error getting cameras:", err);
+            handleCameraError(err, "Error al detectar cámaras");
+        }
+    };
+
+    const stopScannerCleanup = async () => {
+        if (html5QrCodeRef.current) {
+            try {
+                if (html5QrCodeRef.current.isScanning) {
+                    await html5QrCodeRef.current.stop();
+                }
+                html5QrCodeRef.current.clear();
+            } catch (e) {
+                console.error("Error stopping scanner on cleanup:", e);
+            }
+            html5QrCodeRef.current = null;
+        }
+    };
+
+    const handleCameraError = (err, context) => {
+        const errorStr = err.toString();
+        setTechnicalError(`${context}: ${errorStr}`);
+
+        if (errorStr.includes("NotAllowedError") || errorStr.includes("Permission") || errorStr.includes("permission")) {
+            setScanError("🚫 Acceso Denegado: Permiso de cámara bloqueado por el navegador/usuario.");
+        } else if (errorStr.includes("NotFoundError")) {
+            setScanError("📷 No se encontró ninguna cámara.");
+        } else if (errorStr.includes("NotReadableError") || errorStr.includes("TrackStartError")) {
+            setScanError("⚠️ La cámara está siendo usada por otra aplicación o pestaña. Ciérralas e intenta de nuevo.");
+        } else if (errorStr.includes("OverconstrainedError")) {
+            setScanError("⚠️ La cámara no soporta la resolución solicitada.");
+        } else if (errorStr.includes("SecureContext")) {
+            setScanError("🔒 Se requiere HTTPS para usar la cámara.");
+        } else {
+            setScanError("❌ Error desconocido al acceder a la cámara.");
+        }
+    };
+
     const startScanning = async () => {
+        setScanError(null);
+        setTechnicalError(null);
+
         if (!selectedCamera) {
             if (cameras.length === 0) {
-                setScanError("No se detectaron cámaras. Si estás usando una IP (HTTP), el navegador bloquea la cámara por seguridad.");
-            } else {
-                setScanError("Selecciona una cámara de la lista primero.");
+                // Try re-initializing if no cameras
+                await initializeCameras();
+                if (cameras.length === 0) return; // Still failed
             }
+        }
+
+        // Double check secure context
+        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+            setScanError("🔒 HTTPS Requerido. No se puede iniciar la cámara.");
             return;
         }
 
         try {
-            // Ensure reader element exists and is empty
+            // Ensure any previous instance is stopped
+            await stopScannerCleanup();
+
             const readerElement = document.getElementById('reader');
             if (!readerElement) {
-                setScanError("Error interno: No se encontró el contenedor del escáner.");
-                return;
+                throw new Error("Elemento DOM 'reader' no encontrado.");
             }
 
             const html5QrCode = new Html5Qrcode("reader");
             html5QrCodeRef.current = html5QrCode;
 
+            // Use slightly more permissive config
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                videoConstraints: {
+                    deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
+                    facingMode: selectedCamera ? undefined : "environment" // Fallback
+                }
+            };
+
             await html5QrCode.start(
-                selectedCamera,
-                {
-                    fps: 20, // Slightly higher for smoother detection
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0,
-                },
+                selectedCamera || { facingMode: "environment" },
+                config,
                 onScanSuccess,
                 onScanFailure
             );
+
             setIsScanning(true);
-            setScanError(null);
         } catch (err) {
             console.error("Error starting scanner:", err);
-            if (err.toString().includes("NotAllowedError") || err.toString().includes("Permission")) {
-                setScanError("Error: Permiso de cámara denegado.");
-            } else if (err.toString().includes("NotFoundError")) {
-                setScanError("Error: Cámara no encontrada.");
-            } else {
-                setScanError("Error al iniciar el escáner. Asegúrate de estar usando HTTPS.");
-            }
+            handleCameraError(err, "Error al iniciar el stream");
+            setIsScanning(false);
         }
     };
 
     const stopScanning = async () => {
+        setIsScanning(false); // Update UI immediately
         if (html5QrCodeRef.current) {
             try {
                 await html5QrCodeRef.current.stop();
-                html5QrCodeRef.current = null;
+                // html5QrCodeRef.current = null; // Don't null immediately to allow restart? No, better cleanup
             } catch (err) {
                 console.error("Error stopping scanner:", err);
             }
         }
-        setIsScanning(false);
     };
 
     const onScanSuccess = async (decodedText) => {
-        // Prevent duplicate scans
+        // Prevent duplicate scans within 4 seconds
         if (decodedText === lastScannedRef.current) return;
         lastScannedRef.current = decodedText;
 
         console.log("QR Detected:", decodedText);
-        setScanResult(null);
-        setScanError(null);
+        setScanResult(null); // Clear previous result
 
         try {
+            // Play beep sound immediately
+            // const audio = new Audio('/sounds/beep.mp3'); // If you have one
+            // audio.play().catch(e => {}); 
+
             const response = await axios.post(route('asistencia.store'), {
                 hash_qr: decodedText
             });
-            console.log("Response:", response.data);
-            setScanResult(response.data);
 
-            // Play success sound (optional)
-            try { new Audio('/sounds/success.mp3').play(); } catch (e) { }
+            console.log("API Success:", response.data);
+            setScanResult(response.data);
 
         } catch (error) {
             console.error("API Error:", error);
-            setScanError(error.response?.data?.message || "Error al procesar el QR.");
+            // Don't stop scanning on logic error, just show it
+            setScanError(error.response?.data?.message || "Error al procesar el QR en el servidor.");
         }
 
-        // Reset after 4 seconds
+        // Reset lock after 3 seconds so same student can scan again later if needed
         setTimeout(() => {
             lastScannedRef.current = null;
-            setScanResult(null);
-            setScanError(null);
-        }, 4000);
+            // Optionally clear result/error after delay?
+            // setScanResult(null);
+            // setScanError(null);
+        }, 3000);
     };
 
     const onScanFailure = (error) => {
-        // Ignore - this fires constantly when no QR is in frame
+        // This fires continuously when no QR is detected. 
+        // Do NOT update state here to avoid re-renders.
     };
 
     return (
@@ -169,11 +221,20 @@ export default function Scanner({ auth }) {
                             {/* Camera Selection */}
                             {cameras.length > 0 && (
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar Cámara:</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Cámara:</label>
                                     <select
                                         value={selectedCamera || ''}
-                                        onChange={(e) => setSelectedCamera(e.target.value)}
-                                        className="w-full border-gray-300 rounded-lg shadow-sm"
+                                        onChange={(e) => {
+                                            setSelectedCamera(e.target.value);
+                                            // If scanning, restart needed to switch? Usually yes.
+                                            if (isScanning) {
+                                                stopScanning().then(() => {
+                                                    // Use check to prevent instant restart issues? 
+                                                    // Best to force user to click start again or handle auto-restart slightly delayed.
+                                                });
+                                            }
+                                        }}
+                                        className="w-full border-gray-300 rounded-lg shadow-sm text-sm"
                                         disabled={isScanning}
                                     >
                                         {cameras.map(cam => (
@@ -183,88 +244,148 @@ export default function Scanner({ auth }) {
                                 </div>
                             )}
 
-                            {/* Start/Stop Button */}
-                            <div className="text-center mb-4">
+                            {/* Controls */}
+                            <div className="text-center mb-6">
                                 {!isScanning ? (
-                                    <button
-                                        onClick={startScanning}
-                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-all"
-                                    >
-                                        ▶️ Iniciar Escáner
-                                    </button>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <button
+                                            onClick={startScanning}
+                                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-full text-lg shadow-lg transition-transform transform hover:scale-105"
+                                        >
+                                            ▶️ Iniciar Escáner
+                                        </button>
+                                        <p className="text-xs text-gray-400">Asegúrate de dar permisos de cámara</p>
+                                    </div>
                                 ) : (
                                     <button
                                         onClick={stopScanning}
-                                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-all"
+                                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-transform"
                                     >
                                         ⏹️ Detener Escáner
                                     </button>
                                 )}
                             </div>
 
-                            {/* Scanner Container */}
-                            <div id="reader" className="w-full rounded-xl overflow-hidden border-4 border-gray-200" style={{ minHeight: isScanning ? '350px' : '0' }}></div>
-
-                            {/* Success Message */}
-                            {scanResult && (
-                                <div className="mt-6 p-6 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-2xl text-center shadow-lg animate-pulse">
-                                    <div className="text-5xl mb-2">✅</div>
-                                    <h4 className="font-bold text-xl">¡Asistencia Registrada!</h4>
-                                    <p className="text-3xl font-bold mt-3">{scanResult.student}</p>
-                                    <p className="text-lg opacity-90 uppercase tracking-wider mt-1">{scanResult.menu}</p>
-
-                                    {/* History */}
-                                    {scanResult.history && scanResult.history.length > 0 && (
-                                        <div className="mt-4 bg-white/20 rounded-lg p-3 text-left">
-                                            <h5 className="text-sm font-bold opacity-80 mb-2 uppercase border-b border-white/30 pb-1">Asistencias de Hoy:</h5>
-                                            <ul className="space-y-1">
-                                                {scanResult.history.map((record, idx) => (
-                                                    <li key={idx} className="text-sm flex justify-between">
-                                                        <span>🍽️ {record.tipo}</span>
-                                                        <span className="font-mono bg-black/20 px-2 rounded">{record.hora}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Error Message */}
+                            {/* Errors */}
                             {scanError && (
-                                <div className="mt-6 p-6 bg-gradient-to-r from-red-400 to-rose-500 text-white rounded-2xl text-center shadow-lg">
-                                    <div className="text-5xl mb-2">❌</div>
-                                    <h4 className="font-bold text-xl">Error del Escáner</h4>
-                                    <p className="mt-2 text-sm">{scanError}</p>
+                                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                                    <div className="flex items-start">
+                                        <div className="flex-shrink-0 text-red-500 text-xl">⚠️</div>
+                                        <div className="ml-3 w-full">
+                                            <h3 className="text-sm font-bold text-red-800 uppercase tracking-wide">Error de Sistema/Cámara</h3>
+                                            <p className="text-red-700 mt-1">{scanError}</p>
 
-                                    {!window.isSecureContext && (
-                                        <div className="mt-4 p-3 bg-white/20 rounded text-xs text-left">
-                                            <p className="font-bold">💡 Posible solución:</p>
-                                            <p>Estás usando una conexión no segura. Para activar la cámara en Chrome:</p>
-                                            <ol className="list-decimal ml-4 mt-1">
-                                                <li>Copia: <code className="bg-black/20 p-0.5">34.176.106.224</code></li>
-                                                <li>Ve a: <code className="bg-black/20 p-0.5">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code></li>
-                                                <li>Pega la IP y cámbialo a <b>Enabled</b>.</li>
-                                            </ol>
+                                            {/* Technical Details Toggle */}
+                                            {technicalError && (
+                                                <div className="mt-3">
+                                                    <button
+                                                        onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+                                                        className="text-xs text-red-600 underline hover:text-red-800"
+                                                    >
+                                                        {showTechnicalDetails ? "Ocultar detalles técnicos" : "Ver detalles técnicos"}
+                                                    </button>
+                                                    {showTechnicalDetails && (
+                                                        <pre className="mt-2 p-2 bg-gray-800 text-green-400 text-xs rounded overflow-x-auto whitespace-pre-wrap">
+                                                            {technicalError}
+                                                        </pre>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {!window.isSecureContext && window.location.hostname !== 'localhost' && (
+                                                <div className="mt-4 bg-white/50 p-3 rounded text-xs text-red-900">
+                                                    <strong>Solución para HTTP (No seguro):</strong>
+                                                    <ol className="list-decimal ml-4 mt-1 space-y-1">
+                                                        <li>Copia esto: chrome://flags/#unsafely-treat-insecure-origin-as-secure</li>
+                                                        <li>Pégalo en una nueva pestaña.</li>
+                                                        <li>Habilita la opción ("Enabled") y añade la IP de este servidor.</li>
+                                                        <li>Reinicia el navegador.</li>
+                                                    </ol>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Manual Fallback */}
+                            {/* Viewfinder */}
+                            <div className="relative mx-auto" style={{ maxWidth: '400px' }}>
+                                <div
+                                    id="reader"
+                                    className={`w-full rounded-xl overflow-hidden border-2 bg-black transition-all ${isScanning ? 'border-green-500 shadow-green-500/50 shadow-xl' : 'border-gray-200 h-64 flex items-center justify-center'}`}
+                                >
+                                    {!isScanning && (
+                                        <div className="text-gray-500 flex flex-col items-center">
+                                            <span className="text-4xl mb-2">📷</span>
+                                            <span className="text-sm">Cámara apagada</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Result Card */}
+                            {scanResult && (
+                                <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl text-center relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-20 text-6xl">✨</div>
+
+                                        <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
+                                            <span className="text-3xl">✅</span>
+                                        </div>
+
+                                        <h4 className="font-bold text-xl uppercase tracking-wider mb-1">Asistencia Registrada</h4>
+                                        <h2 className="text-2xl font-black mb-2">{scanResult.student}</h2>
+                                        <div className="inline-block px-4 py-1 bg-white/20 rounded-full backdrop-blur-md text-sm font-semibold">
+                                            {scanResult.menu}
+                                        </div>
+
+                                        {/* Daily History */}
+                                        {scanResult.history && scanResult.history.length > 0 && (
+                                            <div className="mt-4 pt-4 border-t border-white/20 text-left">
+                                                <p className="text-xs uppercase font-bold opacity-75 mb-2">Historial de Hoy:</p>
+                                                <div className="space-y-1.5">
+                                                    {scanResult.history.map((record, idx) => (
+                                                        <div key={idx} className="flex justify-between items-center text-sm bg-white/10 p-2 rounded">
+                                                            <span className="flex items-center gap-2">
+                                                                <span>🍽️</span> {record.tipo}
+                                                            </span>
+                                                            <span className="font-mono opacity-90">{record.hora}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            onClick={() => setScanResult(null)}
+                                            className="absolute top-2 right-2 p-1 hover:bg-white/20 rounded-full transition-colors"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Manual Input Fallback */}
                             {!isScanning && (
-                                <div className="mt-8 pt-6 border-t border-gray-100 italic text-center">
-                                    <p className="text-gray-400 text-sm mb-3">¿Problemas con la cámara?</p>
-                                    <div className="flex gap-2 max-w-xs mx-auto">
+                                <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center">
+                                    <p className="text-gray-400 text-xs mb-3 italic">¿El escáner no funciona? Ingresa el código manual:</p>
+                                    <div className="flex gap-2 w-full max-w-xs">
                                         <input
                                             type="text"
-                                            placeholder="Hash o Código Manual"
-                                            id="manual_code"
-                                            className="w-full text-xs border-gray-200 rounded-lg"
+                                            placeholder="# Código / DNI"
+                                            id="manual_code_input"
+                                            className="flex-1 text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') onScanSuccess(e.target.value);
+                                            }}
                                         />
                                         <button
-                                            onClick={() => onScanSuccess(document.getElementById('manual_code').value)}
-                                            className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-xs hover:bg-gray-200"
+                                            onClick={() => {
+                                                const val = document.getElementById('manual_code_input').value;
+                                                if (val) onScanSuccess(val);
+                                            }}
+                                            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 border border-gray-300"
                                         >
                                             Procesar
                                         </button>
@@ -272,12 +393,6 @@ export default function Scanner({ auth }) {
                                 </div>
                             )}
 
-                            {/* Instructions */}
-                            {isScanning && !scanResult && !scanError && (
-                                <div className="mt-4 text-center text-gray-500 text-sm">
-                                    <p>Apunta la cámara al código QR del estudiante...</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
