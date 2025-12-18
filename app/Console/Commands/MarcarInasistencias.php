@@ -98,6 +98,7 @@ class MarcarInasistencias extends Command
 
     private function processUserDay($userId, $dateStr)
     {
+        // Check if they attended AT LEAST ONE meal this day
         $attendedCount = ProgramacionComedor::where('usuario_id', $userId)
             ->where('estado', 'asistio')
             ->whereHas('menu', function ($q) use ($dateStr) {
@@ -105,18 +106,25 @@ class MarcarInasistencias extends Command
             })
             ->count();
 
-        $pendingQuery = ProgramacionComedor::where('usuario_id', $userId)
-            ->where('estado', 'programado')
+        // Target both 'programado' (not yet processed) and 'falta' (marked by realtime today)
+        $unattendedQuery = ProgramacionComedor::where('usuario_id', $userId)
+            ->whereIn('estado', ['programado', 'falta'])
             ->whereHas('menu', function ($q) use ($dateStr) {
                 $q->whereDate('fecha', $dateStr);
             });
 
         if ($attendedCount > 0) {
-            $deleted = $pendingQuery->delete();
-            $this->info("User {$userId}: Asistió {$attendedCount} veces. {$deleted} reservas sobrantes eliminadas.");
+            // FORGIVE: If they attended once, we clean up the rest of the day (no fault)
+            $cleaned = $unattendedQuery->delete();
+            if ($cleaned > 0) {
+                $this->info("User {$userId}: Asistió {$attendedCount} veces. Se perdonaron {$cleaned} inasistencias del día {$dateStr}.");
+            }
         } else {
-            $updated = $pendingQuery->update(['estado' => 'falta']);
-            $this->info("User {$userId}: NO asistió. {$updated} reservas marcadas como FALTA.");
+            // ABSENT: If they attended ZERO meals but HAD reservations, mark as 'falta'
+            $updated = $unattendedQuery->update(['estado' => 'falta']);
+            if ($updated > 0) {
+                $this->warn("User {$userId}: NO asistió a nada. Se marcaron {$updated} FALTAS para el día {$dateStr}.");
+            }
         }
     }
 
