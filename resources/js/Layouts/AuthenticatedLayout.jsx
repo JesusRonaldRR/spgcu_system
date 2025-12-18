@@ -273,6 +273,11 @@ export default function Authenticated({ user, header, children }) {
                     </svg>
                 </a>
             </div>
+
+            {/* Version Indicator */}
+            <div className="fixed bottom-2 left-2 text-[10px] text-gray-400 z-40 select-none opacity-50">
+                v1.5 (2025)
+            </div>
         </div>
     );
 }
