@@ -15,38 +15,72 @@ export default function Scanner({ auth }) {
 
     // Get available cameras on mount
     useEffect(() => {
-        Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length) {
-                setCameras(devices);
-                // Prefer back camera
-                const backCam = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('trasera'));
-                setSelectedCamera(backCam ? backCam.id : devices[0].id);
+        // SECURITY CHECK: Browsers block camera on HTTP (except localhost)
+        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+            setScanError("⚠️ Error de Seguridad: El acceso a la cámara requiere una conexión SEGURA (HTTPS). El navegador bloquea la cámara en conexiones HTTP simples por privacidad.");
+            return;
+        }
+
+        const initCameras = async () => {
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length) {
+                    setCameras(devices);
+                    // Prefer back camera
+                    const backCam = devices.find(d =>
+                        d.label.toLowerCase().includes('back') ||
+                        d.label.toLowerCase().includes('trasera') ||
+                        d.label.toLowerCase().includes('rear')
+                    );
+                    setSelectedCamera(backCam ? backCam.id : devices[0].id);
+                } else {
+                    setScanError("No se encontraron cámaras conectadas al dispositivo.");
+                }
+            } catch (err) {
+                console.error("Error getting cameras:", err);
+                if (err.toString().includes("Permission")) {
+                    setScanError("Permiso de cámara denegado. Por favor, permite el acceso en tu navegador.");
+                } else {
+                    setScanError("Error al acceder a la cámara. Verifica que no esté siendo usada por otra pestaña.");
+                }
             }
-        }).catch(err => {
-            console.error("Error getting cameras:", err);
-            setScanError("No se pudo acceder a las cámaras. Verifica los permisos.");
-        });
+        };
+
+        initCameras();
 
         return () => {
-            stopScanning();
+            if (html5QrCodeRef.current) {
+                html5QrCodeRef.current.stop().catch(e => console.error("Error on cleanup:", e));
+            }
         };
     }, []);
 
     const startScanning = async () => {
         if (!selectedCamera) {
-            setScanError("Selecciona una cámara primero.");
+            if (cameras.length === 0) {
+                setScanError("No se detectaron cámaras. Si estás usando una IP (HTTP), el navegador bloquea la cámara por seguridad.");
+            } else {
+                setScanError("Selecciona una cámara de la lista primero.");
+            }
             return;
         }
 
         try {
+            // Ensure reader element exists and is empty
+            const readerElement = document.getElementById('reader');
+            if (!readerElement) {
+                setScanError("Error interno: No se encontró el contenedor del escáner.");
+                return;
+            }
+
             const html5QrCode = new Html5Qrcode("reader");
             html5QrCodeRef.current = html5QrCode;
 
             await html5QrCode.start(
                 selectedCamera,
                 {
-                    fps: 15,
-                    qrbox: { width: 280, height: 280 },
+                    fps: 20, // Slightly higher for smoother detection
+                    qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0,
                 },
                 onScanSuccess,
@@ -56,7 +90,13 @@ export default function Scanner({ auth }) {
             setScanError(null);
         } catch (err) {
             console.error("Error starting scanner:", err);
-            setScanError("Error al iniciar el escáner. Verifica permisos de cámara.");
+            if (err.toString().includes("NotAllowedError") || err.toString().includes("Permission")) {
+                setScanError("Error: Permiso de cámara denegado.");
+            } else if (err.toString().includes("NotFoundError")) {
+                setScanError("Error: Cámara no encontrada.");
+            } else {
+                setScanError("Error al iniciar el escáner. Asegúrate de estar usando HTTPS.");
+            }
         }
     };
 
@@ -194,8 +234,41 @@ export default function Scanner({ auth }) {
                             {scanError && (
                                 <div className="mt-6 p-6 bg-gradient-to-r from-red-400 to-rose-500 text-white rounded-2xl text-center shadow-lg">
                                     <div className="text-5xl mb-2">❌</div>
-                                    <h4 className="font-bold text-xl">Error</h4>
-                                    <p className="mt-2">{scanError}</p>
+                                    <h4 className="font-bold text-xl">Error del Escáner</h4>
+                                    <p className="mt-2 text-sm">{scanError}</p>
+
+                                    {!window.isSecureContext && (
+                                        <div className="mt-4 p-3 bg-white/20 rounded text-xs text-left">
+                                            <p className="font-bold">💡 Posible solución:</p>
+                                            <p>Estás usando una conexión no segura. Para activar la cámara en Chrome:</p>
+                                            <ol className="list-decimal ml-4 mt-1">
+                                                <li>Copia: <code className="bg-black/20 p-0.5">34.176.106.224</code></li>
+                                                <li>Ve a: <code className="bg-black/20 p-0.5">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code></li>
+                                                <li>Pega la IP y cámbialo a <b>Enabled</b>.</li>
+                                            </ol>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Manual Fallback */}
+                            {!isScanning && (
+                                <div className="mt-8 pt-6 border-t border-gray-100 italic text-center">
+                                    <p className="text-gray-400 text-sm mb-3">¿Problemas con la cámara?</p>
+                                    <div className="flex gap-2 max-w-xs mx-auto">
+                                        <input
+                                            type="text"
+                                            placeholder="Hash o Código Manual"
+                                            id="manual_code"
+                                            className="w-full text-xs border-gray-200 rounded-lg"
+                                        />
+                                        <button
+                                            onClick={() => onScanSuccess(document.getElementById('manual_code').value)}
+                                            className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-xs hover:bg-gray-200"
+                                        >
+                                            Procesar
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
