@@ -49,7 +49,6 @@ export default function Scanner({ auth }) {
                 );
                 const defaultCamId = backCam ? backCam.id : devices[0].id;
                 setSelectedCamera(defaultCamId);
-                setScanError(null);
                 return devices; // Return for direct usage
             } else {
                 setScanError("No se encontraron cámaras conectadas al dispositivo.");
@@ -327,19 +326,20 @@ export default function Scanner({ auth }) {
                                 </div>
                             )}
 
-                            {/* Viewfinder */}
-                            <div className="relative mx-auto" style={{ maxWidth: '400px' }}>
+                            {/* Viewfinder - FIXED HEIGHT FOR RELIABILITY */}
+                            <div className="relative mx-auto bg-black rounded-xl overflow-hidden shadow-lg border-2 border-gray-200" style={{ maxWidth: '400px', minHeight: '320px' }}>
                                 <div
                                     id="reader"
-                                    className={`w-full rounded-xl overflow-hidden border-2 bg-black transition-all ${isScanning ? 'border-green-500 shadow-green-500/50 shadow-xl' : 'border-gray-200 h-64 flex items-center justify-center'}`}
-                                >
-                                    {!isScanning && (
-                                        <div className="text-gray-500 flex flex-col items-center">
-                                            <span className="text-4xl mb-2">📷</span>
-                                            <span className="text-sm">Cámara apagada</span>
-                                        </div>
-                                    )}
-                                </div>
+                                    className="w-full h-full"
+                                    style={{ minHeight: '320px' }}
+                                ></div>
+
+                                {!isScanning && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-10 bg-gray-100">
+                                        <span className="text-4xl mb-2">📷</span>
+                                        <span className="text-sm">Cámara apagada</span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Result Card */}
