@@ -80,6 +80,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/otros-servicios', [\App\Http\Controllers\OtrosServiciosController::class, 'adminIndex'])->name('admin.otros-servicios.index');
         Route::patch('/admin/otros-servicios/{id}', [\App\Http\Controllers\OtrosServiciosController::class, 'update'])->name('admin.otros-servicios.update');
         Route::delete('/admin/otros-servicios/{id}', [\App\Http\Controllers\OtrosServiciosController::class, 'destroy'])->name('admin.otros-servicios.destroy');
+
+        // Admin: Reportes
+        Route::get('/reportes/focalizacion', [\App\Http\Controllers\ReporteController::class, 'focalizacion'])->name('reportes.focalizacion');
+        Route::get('/reportes/comedor', [\App\Http\Controllers\ReporteController::class, 'comedor'])->name('reportes.comedor');
     });
 });
 

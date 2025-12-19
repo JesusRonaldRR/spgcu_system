@@ -172,7 +172,7 @@ export default function Dashboard({ auth }) {
                     title: 'REPORTES',
                     subtitle: 'Focalización',
                     description: 'Generar informes socioeconómicos',
-                    href: '#',
+                    href: route('reportes.focalizacion'),
                     color: 'from-sky-500 to-blue-600',
                     badge: 'B',
                     badgeColor: 'bg-blue-500',
