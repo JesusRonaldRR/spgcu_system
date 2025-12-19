@@ -17,7 +17,7 @@ class ReporteController extends Controller
     public function focalizacion()
     {
         // Get all postulations with student data, ordered by score (puntaje)
-        $postulaciones = Postulacion::with('estudiante')
+        $postulaciones = Postulacion::with('usuario')
             ->orderBy('puntaje', 'desc')
             ->get();
 
@@ -38,19 +38,20 @@ class ReporteController extends Controller
     public function comedor()
     {
         // Daily attendance count for the last 7 days
-        $dailyStats = Asistencia::select(DB::raw('DATE(fecha_hora_escaneo) as date'), DB::raw('count(*) as count'))
+        // Group by Date robustly
+        $dailyStats = Asistencia::selectRaw('DATE(fecha_hora_escaneo) as date, count(*) as count')
             ->groupBy('date')
             ->orderBy('date', 'desc')
             ->limit(7)
             ->get();
 
         // Meal type distribution (Total)
-        $mealStats = Asistencia::select('tipo_menu', DB::raw('count(*) as count'))
+        $mealStats = Asistencia::selectRaw('tipo_menu, count(*) as count')
             ->groupBy('tipo_menu')
             ->get();
 
         // Recent activity
-        $recentActivity = Asistencia::with('estudiante')
+        $recentActivity = Asistencia::with('usuario')
             ->orderBy('fecha_hora_escaneo', 'desc')
             ->limit(10)
             ->get();

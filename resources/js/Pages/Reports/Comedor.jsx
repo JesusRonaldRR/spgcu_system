@@ -83,7 +83,7 @@ export default function Comedor({ auth, dailyStats, mealStats, recentActivity })
                                                     {new Date(log.fecha_hora_escaneo).toLocaleString()}
                                                 </td>
                                                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm font-medium">
-                                                    {log.estudiante ? `${log.estudiante.nombres} ${log.estudiante.apellidos}` : 'Desconocido'}
+                                                    {log.usuario ? `${log.usuario.nombres} ${log.usuario.apellidos}` : 'Desconocido'}
                                                 </td>
                                                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm capitalize">
                                                     {log.tipo_menu}

@@ -57,21 +57,21 @@ export default function Focalizacion({ auth, postulaciones, stats }) {
                                                     <div className="flex items-center">
                                                         <div>
                                                             <p className="text-gray-900 whitespace-no-wrap font-bold">
-                                                                {postulacion.estudiante.nombres} {postulacion.estudiante.apellidos}
+                                                                {postulacion.usuario.nombres} {postulacion.usuario.apellidos}
                                                             </p>
-                                                            <p className="text-gray-500 text-xs">{postulacion.estudiante.email}</p>
+                                                            <p className="text-gray-500 text-xs">{postulacion.usuario.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                                    <p className="text-gray-900 whitespace-no-wrap">{postulacion.estudiante.codigo || postulacion.estudiante.dni}</p>
+                                                    <p className="text-gray-900 whitespace-no-wrap">{postulacion.usuario.codigo || postulacion.usuario.dni}</p>
                                                 </td>
                                                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                                     <span className="font-bold text-gray-700">{postulacion.puntaje} pts</span>
                                                 </td>
                                                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                                     <span className={`relative inline-block px-3 py-1 font-semibold leading-tight text-white rounded-full ${postulacion.estado === 'aprobado' ? 'bg-green-500' :
-                                                            postulacion.estado === 'rechazado' ? 'bg-red-500' : 'bg-yellow-500'
+                                                        postulacion.estado === 'rechazado' ? 'bg-red-500' : 'bg-yellow-500'
                                                         }`}>
                                                         <span className="relative capitalize">{postulacion.estado}</span>
                                                     </span>
