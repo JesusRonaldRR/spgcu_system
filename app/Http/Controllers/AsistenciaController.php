@@ -155,10 +155,14 @@ class AsistenciaController extends Controller
                 return $item->menu->tipo;
             });
 
+        // Fetch all menus for today to check expiration times even if no students are scheduled
+        $menus = \App\Models\Menu::whereDate('fecha', $today)->get()->keyBy('tipo');
+
         return Inertia::render('Asistencia/TodayList', [
             'date' => $today->format('d/m/Y'),
             'serverTime' => Carbon::now()->format('H:i:s'),
             'reservations' => $reservations,
+            'menus' => $menus,
         ]);
     }
 

@@ -1,17 +1,24 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 
-export default function TodayList({ auth, date, reservations, serverTime }) {
+export default function TodayList({ auth, date, reservations, serverTime, menus }) {
 
     // Helper to render a table for a specific meal type
-    const renderTable = (title, items, colorClass) => {
+    // title: e.g. "☕ Desayuno"
+    // items: Array of reservations or null
+    // colorClass: Header color
+    // typeKey: 'desayuno' | 'almuerzo' | 'cena' to look up in menus prop
+    const renderTable = (title, items, colorClass, typeKey) => {
         // Check if menu is expired
         let isExpired = false;
-        let menuInfo = null;
 
-        if (items && items.length > 0) {
-            menuInfo = items[0].menu;
-            if (menuInfo && menuInfo.hora_fin < serverTime) {
+        // Find menu info from the passed 'menus' prop (keyed by 'tipo')
+        // This ensures we have the schedule even if 'items' is empty
+        const menuInfo = menus && menus[typeKey] ? menus[typeKey] : null;
+
+        if (menuInfo) {
+            // Compare string times directly (HH:mm:ss) works for same day
+            if (menuInfo.hora_fin < serverTime) {
                 isExpired = true;
             }
         }
@@ -137,9 +144,9 @@ export default function TodayList({ auth, date, reservations, serverTime }) {
                         </div>
                     </div>
 
-                    {renderTable('☕ Desayuno', reservations.desayuno, 'bg-yellow-500')}
-                    {renderTable('🍽️ Almuerzo', reservations.almuerzo, 'bg-orange-500')}
-                    {renderTable('🌙 Cena', reservations.cena, 'bg-indigo-600')}
+                    {renderTable('☕ Desayuno', reservations.desayuno, 'bg-yellow-500', 'desayuno')}
+                    {renderTable('🍽️ Almuerzo', reservations.almuerzo, 'bg-orange-500', 'almuerzo')}
+                    {renderTable('🌙 Cena', reservations.cena, 'bg-indigo-600', 'cena')}
 
                 </div>
             </div>
