@@ -3,6 +3,9 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
 export default function Index({ auth, menus, currentStart, currentEnd }) {
+    // Moved to top to prevent ReferenceError in isExpired
+    const todayStr = new Date().toISOString().split('T')[0];
+
     const [showModal, setShowModal] = useState(false);
     const [editingMenu, setEditingMenu] = useState(null);
 
@@ -152,8 +155,6 @@ export default function Index({ auth, menus, currentStart, currentEnd }) {
             });
         }
     };
-
-    const todayStr = new Date().toISOString().split('T')[0];
 
     return (
         <AuthenticatedLayout
