@@ -55,6 +55,12 @@ Route::middleware('auth')->group(function () {
         // Admin: Users
         Route::resource('admin/users', \App\Http\Controllers\AdminUserController::class)->names('admin.users');
 
+        // Admin: Convocatorias
+        Route::get('/admin/convocatorias', [\App\Http\Controllers\ConvocatoriaController::class, 'index'])->name('admin.convocatorias.index');
+        Route::post('/admin/convocatorias', [\App\Http\Controllers\ConvocatoriaController::class, 'store'])->name('admin.convocatorias.store');
+        Route::put('/admin/convocatorias/{convocatoria}', [\App\Http\Controllers\ConvocatoriaController::class, 'update'])->name('admin.convocatorias.update');
+        Route::delete('/admin/convocatorias/{convocatoria}', [\App\Http\Controllers\ConvocatoriaController::class, 'destroy'])->name('admin.convocatorias.destroy');
+
         // Admin: Menus
         Route::get('/admin/menus', [\App\Http\Controllers\MenuController::class, 'adminIndex'])->name('admin.menus.index');
         Route::post('/admin/menus', [\App\Http\Controllers\MenuController::class, 'store'])->name('admin.menus.store');
