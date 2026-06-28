@@ -18,28 +18,28 @@ class ConvocatoriaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
             'esta_activa' => 'required|boolean',
         ]);
 
-        Convocatoria::create($request->all());
+        Convocatoria::create($validated);
 
         return back()->with('success', 'Convocatoria creada correctamente.');
     }
 
     public function update(Request $request, Convocatoria $convocatoria)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
             'esta_activa' => 'required|boolean',
         ]);
 
-        $convocatoria->update($request->all());
+        $convocatoria->update($validated);
 
         return back()->with('success', 'Convocatoria actualizada correctamente.');
     }

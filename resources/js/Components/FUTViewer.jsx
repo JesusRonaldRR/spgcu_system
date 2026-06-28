@@ -19,7 +19,11 @@ export default function FUTViewer({ postulacion }) {
     };
 
     const files = parseFiles(postulacion.ruta_archivos);
-    const anexosAdicionales = (files.especificos || []);
+    const anexosAdicionales = [...(files.especificos || [])];
+    // Legacy support for single especifico key
+    if (files.especifico && !Array.isArray(files.especifico)) {
+        anexosAdicionales.push(files.especifico);
+    }
 
     const SectionHeader = ({ number, title }) => (
         <div className="bg-gray-200 border-y border-gray-400 px-2 py-1 font-bold text-sm text-gray-800 uppercase mt-4">
@@ -32,6 +36,16 @@ export default function FUTViewer({ postulacion }) {
             {value || '-'}
         </div>
     );
+
+    const statusColors = {
+        pendiente: 'border-yellow-600 text-yellow-600',
+        aprobado: 'border-green-600 text-green-600',
+        apto_entrevista: 'border-blue-600 text-blue-600',
+        entrevista_programada: 'border-purple-600 text-purple-600',
+        becario: 'border-teal-600 text-teal-600',
+        rechazado: 'border-red-600 text-red-600',
+    };
+    const colorClass = statusColors[postulacion.estado] || 'border-gray-600 text-gray-600';
 
     const ReadOnlyRow = ({ label, fileKey }) => {
         const path = files[fileKey];
@@ -74,8 +88,8 @@ export default function FUTViewer({ postulacion }) {
                 <div className="w-1/4 border border-gray-400 rounded-lg h-24 flex items-center justify-center bg-gray-50 text-center p-2 relative">
                     <span className="text-gray-400 text-xs font-bold z-0">SELLO DE RECEPCIÓN</span>
                     <div className="absolute inset-0 flex items-center justify-center z-10 opacity-80 rotate-12">
-                        <span className="border-4 border-red-600 text-red-600 font-black p-1 rounded text-lg uppercase transform">
-                            {postulacion.estado}
+                        <span className={`border-4 ${colorClass} font-black p-1 rounded text-lg uppercase transform`}>
+                            {postulacion.estado.replace('_', ' ')}
                         </span>
                     </div>
                 </div>
