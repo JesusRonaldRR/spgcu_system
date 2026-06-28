@@ -141,14 +141,44 @@ export default function FUTViewer({ postulacion }) {
                 </div>
             </div>
 
-            <SectionHeader number="V" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
+            <SectionHeader number="V" title="GRILLA DE INDICADORES SOCIOECONÓMICOS" />
+            <div className="p-4 overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-400 text-xs">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="border border-gray-400 p-2 text-left w-1/3">INDICADOR</th>
+                            <th className="border border-gray-400 p-2 text-left">ESTADO / VALOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Vivienda</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.vivienda || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Salud</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.salud || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Hábitos Alimenticios</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.alimentacion || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Dependencia Económica</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.dependencia || '-'}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <SectionHeader number="VI" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
             <div className="p-2">
                 <div className="w-full border border-gray-300 rounded bg-gray-50 p-3 h-32 text-justify uppercase text-sm overflow-y-auto">
                     {postulacion.fundamentacion || 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO.'}
                 </div>
             </div>
 
-            <SectionHeader number="VI" title="ANEXOS OBLIGATORIOS (VERIFICACIÓN)" />
+            <SectionHeader number="VII" title="ANEXOS OBLIGATORIOS (VERIFICACIÓN)" />
             <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded grid grid-cols-1 md:grid-cols-2 gap-4">
                 <ReadOnlyRow label="1. Ficha Socioeconómica" fileKey="ficha_socioeconomica" />
                 <ReadOnlyRow label="2. Boletas de Pago" fileKey="boletas_pago" />
@@ -159,7 +189,7 @@ export default function FUTViewer({ postulacion }) {
 
             {anexosAdicionales.length > 0 && (
                 <>
-                    <SectionHeader number="VII" title="ANEXOS ADICIONALES" />
+                    <SectionHeader number="VIII" title="ANEXOS ADICIONALES" />
                     <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded">
                         {anexosAdicionales.map((anexo, idx) => (
                             <div key={idx} className="flex justify-between items-center border-b border-gray-200 py-2 last:border-0">
@@ -181,7 +211,7 @@ export default function FUTViewer({ postulacion }) {
                 </>
             )}
 
-            <SectionHeader number="VIII" title="FIRMA DEL SOLICITANTE" />
+            <SectionHeader number="IX" title="FIRMA DEL SOLICITANTE" />
             <div className="p-4 mt-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="flex flex-col items-center">

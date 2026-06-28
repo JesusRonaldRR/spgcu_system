@@ -68,6 +68,7 @@ class PostulacionController extends Controller
             'anexos_adicionales.*.tipo' => 'required_with:anexos_adicionales|string',
             'anexos_adicionales.*.especificacion' => 'nullable|string',
             'anexos_adicionales.*.archivo' => 'required_with:anexos_adicionales|file|mimes:pdf|max:10240',
+            'indicadores' => 'nullable|string', // Comes as JSON string from React
         ]);
 
         $convocatoria = Convocatoria::findOrFail($request->convocatoria_id);
@@ -132,6 +133,10 @@ class PostulacionController extends Controller
         $postulacion->ingreso_familiar = $request->input('ingreso_familiar') ?? 0;
         $postulacion->numero_miembros = $request->input('numero_miembros') ?? 1;
         $postulacion->condicion_vivienda = $request->input('condicion_vivienda') ?? 'propia';
+
+        if ($request->has('indicadores')) {
+            $postulacion->indicadores_socioeconomicos = json_decode($request->indicadores, true);
+        }
 
         $postulacion->ruta_archivos = json_encode($archivos);
         $postulacion->estado = 'pendiente';

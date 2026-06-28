@@ -17,6 +17,7 @@ class Postulacion extends Model
         'ingreso_familiar',
         'numero_miembros',
         'condicion_vivienda',
+        'indicadores_socioeconomicos',
         'ruta_archivos',
         'puntaje',
         'estado',
@@ -25,6 +26,7 @@ class Postulacion extends Model
 
     protected $casts = [
         'ruta_archivos' => 'array',
+        'indicadores_socioeconomicos' => 'array',
         'ingreso_familiar' => 'decimal:2',
     ];
 
