@@ -31,3 +31,6 @@
 - [x] **8. Flujo Final (Becario)**
     - [x] Estado final `becario`
     - [x] Generación de credenciales/QR final (Implementado en Controller)
+- [x] **9. UI & Branding**
+    - [x] Custom UNAM Login Page (Figma design)
+    - [x] Root redirect to Login
