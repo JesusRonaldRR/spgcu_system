@@ -207,33 +207,60 @@ export default function Dashboard({ auth }) {
             <Head title="Dashboard" />
 
             {/* Page Title */}
-            <div className="mb-6">
+            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center space-x-3">
-                    <svg className="w-6 h-6 text-[#31436B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    <div className="p-2 bg-[#0f4c9b]/10 rounded-lg">
+                        <svg className="w-6 h-6 text-[#0f4c9b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-[#1e3a5f]">
+                            {user.rol === 'estudiante' ? 'Mis Módulos' :
+                                user.rol === 'admin' ? 'Panel de Administración' :
+                                    user.rol === 'administrativo' ? 'Panel de Bienestar' : 'Panel de Control'}
+                        </h1>
+                        <p className="text-gray-500 text-sm">Bienvenido al sistema de gestión universitaria</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center space-x-2 text-sm font-medium text-gray-400">
+                    <span>Inicio</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                    <h1 className="text-2xl font-bold text-[#31436B]">
-                        {user.rol === 'estudiante' ? 'Mis Módulos' :
-                            user.rol === 'admin' ? 'Panel de Administración' :
-                                user.rol === 'administrativo' ? 'Panel de Bienestar' : 'Panel de Control'}
-                    </h1>
+                    <span className="text-[#0f4c9b]">Dashboard</span>
                 </div>
             </div>
 
             {/* Welcome Banner for Students */}
             {user.rol === 'estudiante' && (
-                <div className="bg-gradient-to-r from-[#31436B] to-[#4a5d8a] rounded-2xl p-6 mb-6 text-white shadow-xl">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-bold mb-2">¡Bienvenido, {user.nombres}!</h2>
-                            <p className="text-white/80">Sistema de Gestión del Comedor Universitario UNAM</p>
+                <div className="bg-gradient-to-r from-[#1e3a5f] to-[#0f4c9b] rounded-3xl p-8 mb-8 text-white shadow-2xl relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="text-center md:text-left">
+                            <h2 className="text-3xl font-black mb-2">¡Hola, {user.nombres}! 👋</h2>
+                            <p className="text-white/80 text-lg max-w-md">
+                                Ya puedes gestionar tus beneficios y servicios del comedor universitario Moquegua.
+                            </p>
+                            <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
+                                <span className="bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-bold border border-white/10">
+                                    ESTUDIANTE
+                                </span>
+                                <span className="bg-orange-500 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                                    ACTIVO 2025-I
+                                </span>
+                            </div>
                         </div>
-                        <div className="hidden md:block">
-                            <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center">
-                                <span className="text-4xl">🍽️</span>
+                        <div className="relative">
+                            <div className="w-32 h-32 md:w-40 md:h-40 bg-white/10 rounded-3xl rotate-12 absolute -top-4 -right-4 blur-2xl"></div>
+                            <div className="w-32 h-32 md:w-40 md:h-40 bg-white/20 rounded-3xl -rotate-12 backdrop-blur-md flex items-center justify-center shadow-2xl relative z-10 border border-white/30">
+                                <span className="text-6xl md:text-7xl drop-shadow-lg">🍚</span>
                             </div>
                         </div>
                     </div>
+                    {/* Decorative Background Elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/5 rounded-full -ml-24 -mb-24"></div>
                 </div>
             )}
 
@@ -267,17 +294,28 @@ export default function Dashboard({ auth }) {
                         </div>
 
                         {/* Card Content */}
-                        <div className="p-4">
-                            <h3 className="font-bold text-[#31436B] text-sm mb-1 group-hover:text-blue-600 transition-colors">
-                                {card.title}
-                            </h3>
-                            <p className="text-orange-500 text-xs font-medium mb-2">
-                                {card.subtitle.toUpperCase()}
+                        <div className="p-5">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-[#1e3a5f] text-sm leading-tight group-hover:text-[#0f4c9b] transition-colors">
+                                    {card.title}
+                                </h3>
+                                <svg className="w-4 h-4 text-gray-300 group-hover:text-[#0f4c9b] transform translate-x-0 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <p className="text-[#0f4c9b] text-[10px] font-black uppercase tracking-widest mb-3 opacity-70">
+                                {card.subtitle}
+                            </p>
+                            <p className="text-gray-500 text-xs leading-relaxed line-clamp-2">
+                                {card.description}
                             </p>
                             {card.participants && (
-                                <p className="text-gray-500 text-xs">
+                                <div className="mt-4 pt-4 border-t border-gray-50 flex items-center text-xs text-gray-400">
+                                    <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
                                     {card.participants}
-                                </p>
+                                </div>
                             )}
                         </div>
                     </Link>
