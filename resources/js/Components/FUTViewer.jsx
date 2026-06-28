@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import React from 'react';
 
 export default function FUTViewer({ postulacion }) {
     if (!postulacion) return null;
@@ -7,26 +7,20 @@ export default function FUTViewer({ postulacion }) {
     const today = new Date(postulacion.created_at);
     const dateString = `MOQUEGUA, ${today.getDate()} DE ${today.toLocaleString('es-ES', { month: 'long' }).toUpperCase()} DEL ${today.getFullYear()}`;
 
-    const parseFiles = (data) => {
-        if (!data) return {};
-        // If already an object (Laravel cast), return as-is
-        if (typeof data === 'object' && !Array.isArray(data)) {
-            return data;
+    const parseFiles = (jsonString) => {
+        if (!jsonString) return {};
+        if (typeof jsonString === 'object') return jsonString;
+        try {
+            return JSON.parse(jsonString);
+        } catch (e) {
+            console.error(e);
+            return {};
         }
-        // If string, try to parse
-        if (typeof data === 'string') {
-            try {
-                return JSON.parse(data);
-            } catch (e) {
-                console.error('Error parsing files:', e);
-                return {};
-            }
-        }
-        return {};
     };
 
     const files = parseFiles(postulacion.ruta_archivos);
-    const anexosAdicionales = (files.especificos || []);
+    const anexosAdicionales = [...(files.especificos || [])];
+    // Legacy support for single especifico key
     if (files.especifico && !Array.isArray(files.especifico)) {
         anexosAdicionales.push(files.especifico);
     }
@@ -42,6 +36,16 @@ export default function FUTViewer({ postulacion }) {
             {value || '-'}
         </div>
     );
+
+    const statusColors = {
+        pendiente: 'border-yellow-600 text-yellow-600',
+        aprobado: 'border-green-600 text-green-600',
+        apto_entrevista: 'border-blue-600 text-blue-600',
+        entrevista_programada: 'border-purple-600 text-purple-600',
+        becario: 'border-teal-600 text-teal-600',
+        rechazado: 'border-red-600 text-red-600',
+    };
+    const colorClass = statusColors[postulacion.estado] || 'border-gray-600 text-gray-600';
 
     const ReadOnlyRow = ({ label, fileKey }) => {
         const path = files[fileKey];
@@ -70,7 +74,7 @@ export default function FUTViewer({ postulacion }) {
     };
 
     return (
-        <div className="bg-white p-6 relative text-sm">
+        <div className="bg-white p-8 border border-gray-300 relative text-sm font-sans">
             {/* FUT Header */}
             <div className="flex justify-between items-start mb-6">
                 <div className="w-1/4">
@@ -84,10 +88,8 @@ export default function FUTViewer({ postulacion }) {
                 <div className="w-1/4 border border-gray-400 rounded-lg h-24 flex items-center justify-center bg-gray-50 text-center p-2 relative">
                     <span className="text-gray-400 text-xs font-bold z-0">SELLO DE RECEPCIÓN</span>
                     <div className="absolute inset-0 flex items-center justify-center z-10 opacity-80 rotate-12">
-                        <span className={`border-4 font-black p-1 rounded text-lg uppercase transform ${postulacion.estado === 'aprobado' ? 'border-green-600 text-green-600' :
-                            postulacion.estado === 'rechazado' ? 'border-red-600 text-red-600' : 'border-gray-400 text-gray-400'
-                            }`}>
-                            {postulacion.estado}
+                        <span className={`border-4 ${colorClass} font-black p-1 rounded text-lg uppercase transform`}>
+                            {postulacion.estado.replace('_', ' ')}
                         </span>
                     </div>
                 </div>
@@ -107,11 +109,11 @@ export default function FUTViewer({ postulacion }) {
             <div className="p-2 grid grid-cols-12 gap-2">
                 <div className="col-span-12 md:col-span-4 border p-2 bg-gray-50">
                     <label className="text-xs font-bold block text-gray-500">APELLIDO PATERNO</label>
-                    <div className="uppercase font-medium">{user.apellido_paterno || (user.apellidos ? user.apellidos.split(' ')[0] : '')}</div>
+                    <div className="uppercase font-medium">{user.apellido_paterno || user.apellidos?.split(' ')[0]}</div>
                 </div>
                 <div className="col-span-12 md:col-span-4 border p-2 bg-gray-50">
                     <label className="text-xs font-bold block text-gray-500">APELLIDO MATERNO</label>
-                    <div className="uppercase font-medium">{user.apellido_materno || (user.apellidos ? user.apellidos.split(' ')[1] : '') || '-'}</div>
+                    <div className="uppercase font-medium">{user.apellido_materno || user.apellidos?.split(' ')[1] || '-'}</div>
                 </div>
                 <div className="col-span-12 md:col-span-4 border p-2 bg-gray-50">
                     <label className="text-xs font-bold block text-gray-500">NOMBRES</label>
@@ -142,11 +144,10 @@ export default function FUTViewer({ postulacion }) {
             <SectionHeader number="V" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
             <div className="p-2">
                 <div className="w-full border border-gray-300 rounded bg-gray-50 p-3 h-32 text-justify uppercase text-sm overflow-y-auto">
-                    {postulacion.fundamentacion || 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2025-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.'}
+                    {postulacion.fundamentacion || 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO.'}
                 </div>
             </div>
 
-            {/* VI. ANEXOS OBLIGATORIOS */}
             <SectionHeader number="VI" title="ANEXOS OBLIGATORIOS (VERIFICACIÓN)" />
             <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded grid grid-cols-1 md:grid-cols-2 gap-4">
                 <ReadOnlyRow label="1. Ficha Socioeconómica" fileKey="ficha_socioeconomica" />
@@ -156,7 +157,6 @@ export default function FUTViewer({ postulacion }) {
                 <ReadOnlyRow label="5. DJ PRONABEC" fileKey="dj_pronabec" />
             </div>
 
-            {/* VII. ANEXOS ADICIONALES */}
             {anexosAdicionales.length > 0 && (
                 <>
                     <SectionHeader number="VII" title="ANEXOS ADICIONALES" />
@@ -181,11 +181,9 @@ export default function FUTViewer({ postulacion }) {
                 </>
             )}
 
-            {/* FIRMA DIGITAL */}
             <SectionHeader number="VIII" title="FIRMA DEL SOLICITANTE" />
             <div className="p-4 mt-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Signature Image */}
                     <div className="flex flex-col items-center">
                         <div className="border border-gray-400 p-2 bg-white">
                             {files.firma_digital ? (
@@ -203,7 +201,6 @@ export default function FUTViewer({ postulacion }) {
                         </div>
                     </div>
 
-                    {/* Date and Place */}
                     <div className="flex flex-col justify-center">
                         <div className="border-t border-gray-400 pt-4 text-center">
                             <div className="font-bold text-gray-800 uppercase text-lg">{dateString}</div>

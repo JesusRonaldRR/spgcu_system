@@ -11,10 +11,10 @@
     - [x] Middleware for role access
     - [x] Student Dashboard styling
     - [x] Admin/Admin Dashboard styling
-- [/] **4. Convocatoria Management**
-    - [ ] CRUD Convocatorias (Admin)
+- [x] **4. Convocatoria Management**
+    - [x] CRUD Convocatorias (Admin)
     - [x] Display Active Convocatorias (Student)
-- [/] **5. Implementar Postulación (FUT)**
+- [x] **5. Implementar Postulación (FUT)**
     - [x] Formulario tipo FUT (Datos, Grilla Socioeconómica)
     - [x] Carga de Documentos (PDF, Images)
     - [x] Firma Digital (Canvas)
@@ -23,11 +23,14 @@
     - [x] Listado de postulaciones (Filtros, Buscador)
     - [x] Detalle de postulación (Ver FUT y documentos)
     - [x] Acciones: Aprobar (Derivar a Cita), Rechazar (Permite reintento)
-- [/] **7. Módulo de Citas (Psicológica)** <!-- NEW -->
+- [x] **7. Módulo de Citas (Psicológica)**
     - [x] Schema: Tabla `entrevistas` / `horarios`
-    - [/] Admin: Generar horarios disponibles (Implícito en evaluación)
+    - [x] Admin: Generar horarios disponibles (Implícito en evaluación)
     - [x] Estudiante: Reservar cita (Solo si estado = apto_entrevista)
     - [x] Admin/Psicólogo: Registrar resultado de entrevista
-- [/] **8. Flujo Final (Becario)** <!-- NEW -->
+- [x] **8. Flujo Final (Becario)**
     - [x] Estado final `becario`
     - [x] Generación de credenciales/QR final (Implementado en Controller)
+- [x] **9. UI & Branding**
+    - [x] Custom UNAM Login Page (Figma design)
+    - [x] Root redirect to Login
