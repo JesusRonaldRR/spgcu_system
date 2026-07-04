@@ -119,7 +119,7 @@ export default function Index({ auth, postulaciones }) {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Convocatoria</th>
                                             {isAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>}
-
+                                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Puntaje</th>
                                             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                         </tr>
@@ -139,7 +139,11 @@ export default function Index({ auth, postulaciones }) {
                                                         <div className="text-sm text-gray-500">{postulacion.usuario?.codigo}</div>
                                                     </td>
                                                 )}
-
+                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-bold bg-blue-100 text-blue-800">
+                                                        {postulacion.puntaje} pts
+                                                    </span>
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <StatusBadge status={postulacion.estado} />
                                                     {postulacion.estado === 'entrevista_programada' && postulacion.entrevista && (

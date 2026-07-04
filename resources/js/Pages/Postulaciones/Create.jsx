@@ -154,6 +154,13 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
     const submit = (e) => {
         e.preventDefault();
 
+        // Validate Indicators
+        const missing = Object.entries(data.indicadores).filter(([_, val]) => !val);
+        if (missing.length > 0) {
+            alert('⚠️ INDICADORES INCOMPLETOS\n\nPor favor complete todos los indicadores socioeconómicos en la tabla.');
+            return;
+        }
+
         if (!hasSigned) {
             alert('⚠️ FIRMA REQUERIDA\n\nDebe firmar el formulario antes de enviarlo.');
             return;
@@ -344,12 +351,13 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Vivienda</td>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Vivienda <span className="text-red-500">*</span></td>
                                         <td className="border border-gray-400 p-2">
                                             <select
                                                 className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
                                                 value={data.indicadores.vivienda}
                                                 onChange={(e) => setData('indicadores', {...data.indicadores, vivienda: e.target.value})}
+                                                required
                                             >
                                                 <option value="">-- Seleccione --</option>
                                                 <option value="quinta">Vivienda en Quinta/Callejón/Choza</option>
@@ -360,12 +368,13 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Salud</td>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Salud <span className="text-red-500">*</span></td>
                                         <td className="border border-gray-400 p-2">
                                             <select
                                                 className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
                                                 value={data.indicadores.salud}
                                                 onChange={(e) => setData('indicadores', {...data.indicadores, salud: e.target.value})}
+                                                required
                                             >
                                                 <option value="">-- Seleccione --</option>
                                                 <option value="cronica">Enfermedad Crónica / Discapacidad</option>
@@ -376,12 +385,13 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Hábitos Alimenticios</td>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Hábitos Alimenticios <span className="text-red-500">*</span></td>
                                         <td className="border border-gray-400 p-2">
                                             <select
                                                 className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
                                                 value={data.indicadores.alimentacion}
                                                 onChange={(e) => setData('indicadores', {...data.indicadores, alimentacion: e.target.value})}
+                                                required
                                             >
                                                 <option value="">-- Seleccione --</option>
                                                 <option value="deficiente">Menos de 2 comidas al día</option>
@@ -391,12 +401,13 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Dependencia Económica</td>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Dependencia Económica <span className="text-red-500">*</span></td>
                                         <td className="border border-gray-400 p-2">
                                             <select
                                                 className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
                                                 value={data.indicadores.dependencia}
                                                 onChange={(e) => setData('indicadores', {...data.indicadores, dependencia: e.target.value})}
+                                                required
                                             >
                                                 <option value="">-- Seleccione --</option>
                                                 <option value="total">Dependencia Total (Padres no trabajan)</option>

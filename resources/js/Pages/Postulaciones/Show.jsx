@@ -82,9 +82,10 @@ export default function Show({ auth, postulacion }) {
                                 <h1 className="font-extrabold text-xl text-gray-900 uppercase">Formulario Único de Trámite (FUT)</h1>
                                 <p className="text-xs text-red-600 font-bold mt-1">N° REGISTRO: {postulacion.id.toString().padStart(6, '0')}</p>
                             </div>
-                            <div className="w-1/4 border border-gray-400 rounded-lg h-24 flex items-center justify-center bg-gray-50 text-center p-2 relative">
+                            <div className="w-1/4 border border-gray-400 rounded-lg h-24 flex flex-col items-center justify-center bg-gray-50 text-center p-2 relative">
+                                <span className="text-gray-400 text-[10px] font-black uppercase mb-1">Puntaje: {postulacion.puntaje} pts</span>
                                 <span className="text-gray-400 text-xs font-bold z-0">SELLO DE RECEPCIÓN</span>
-                                <div className="absolute inset-0 flex items-center justify-center z-10 opacity-80 rotate-12">
+                                <div className="absolute inset-0 flex items-center justify-center z-10 opacity-80 rotate-12 pointer-events-none">
                                     <span className="border-4 border-red-600 text-red-600 font-black p-1 rounded text-lg uppercase transform">
                                         {postulacion.estado}
                                     </span>

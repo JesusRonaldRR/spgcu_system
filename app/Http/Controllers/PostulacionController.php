@@ -47,28 +47,76 @@ class PostulacionController extends Controller
         ]);
     }
 
+    /**
+     * Calcula el puntaje socioeconómico basado en los indicadores.
+     * Basado en la rúbrica oficial de la UNAM.
+     */
+    private function calculateScore(array $indicadores)
+    {
+        $puntaje = 0;
+
+        // 1. Vivienda
+        $vivienda = $indicadores['vivienda'] ?? '';
+        $puntaje += match ($vivienda) {
+            'quinta'    => 20,
+            'alquilada' => 15,
+            'cedida'    => 10,
+            'propia'    => 5,
+            default     => 0,
+        };
+
+        // 2. Salud
+        $salud = $indicadores['salud'] ?? '';
+        $puntaje += match ($salud) {
+            'cronica'   => 20,
+            'frecuente' => 15,
+            'estable'   => 10,
+            'buena'     => 5,
+            default     => 0,
+        };
+
+        // 3. Alimentación
+        $alimentacion = $indicadores['alimentacion'] ?? '';
+        $puntaje += match ($alimentacion) {
+            'deficiente' => 20,
+            'irregular'  => 15,
+            'completa'   => 10,
+            default      => 0,
+        };
+
+        // 4. Dependencia
+        $dependencia = $indicadores['dependencia'] ?? '';
+        $puntaje += match ($dependencia) {
+            'total'         => 20,
+            'parcial'       => 15,
+            'independiente' => 10,
+            default         => 0,
+        };
+
+        return $puntaje;
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'convocatoria_id' => 'required|exists:convocatorias,id',
-            'fundamentacion' => 'required|string|max:1000',
-            'firma_digital' => 'required|file|mimes:jpg,jpeg,png|max:10240',
+            'ingreso_familiar' => 'required|numeric|min:0',
+            'numero_miembros' => 'required|integer|min:1',
+            'condicion_vivienda' => 'required|string',
+            'fundamentacion' => 'required|string|max:5000',
+            'firma_digital' => 'required|file|mimes:jpg,jpeg,png,webp|max:10240',
             // Obligatorios
             'ficha_socioeconomica' => 'required|file|mimes:pdf|max:10240',
             'boletas_pago' => 'required|file|mimes:pdf|max:10240',
             'recibo_luz' => 'required|file|mimes:pdf|max:10240',
             'croquis' => 'required|file|mimes:pdf|max:10240',
             'dj_pronabec' => 'required|file|mimes:pdf|max:10240',
-            // Opcional / Específico 
-            'tipo_caso_especifico' => 'nullable|string',
-            'especificacion_otros' => 'nullable|string',
-            'documento_especifico' => 'nullable|file|mimes:pdf|max:10240',
             // New Array Validation
             'anexos_adicionales' => 'nullable|array',
             'anexos_adicionales.*.tipo' => 'required_with:anexos_adicionales|string',
             'anexos_adicionales.*.especificacion' => 'nullable|string',
             'anexos_adicionales.*.archivo' => 'required_with:anexos_adicionales|file|mimes:pdf|max:10240',
-            'indicadores' => 'nullable|string', // Comes as JSON string from React
+            'indicadores' => 'required|string', // Comes as JSON string from React
         ]);
 
         $convocatoria = Convocatoria::findOrFail($request->convocatoria_id);
@@ -130,15 +178,18 @@ class PostulacionController extends Controller
         $postulacion->usuario_id = auth()->id();
         $postulacion->convocatoria_id = $request->convocatoria_id;
 
-        $postulacion->ingreso_familiar = $request->input('ingreso_familiar') ?? 0;
-        $postulacion->numero_miembros = $request->input('numero_miembros') ?? 1;
-        $postulacion->condicion_vivienda = $request->input('condicion_vivienda') ?? 'propia';
+        $postulacion->ingreso_familiar = $request->ingreso_familiar;
+        $postulacion->numero_miembros = $request->numero_miembros;
+        $postulacion->condicion_vivienda = $request->condicion_vivienda;
+        $postulacion->fundamentacion = $request->fundamentacion;
 
         if ($request->has('indicadores')) {
-            $postulacion->indicadores_socioeconomicos = json_decode($request->indicadores, true);
+            $indicadores = json_decode($request->indicadores, true);
+            $postulacion->indicadores_socioeconomicos = $indicadores;
+            $postulacion->puntaje = $this->calculateScore($indicadores);
         }
 
-        $postulacion->ruta_archivos = json_encode($archivos);
+        $postulacion->ruta_archivos = $archivos; // Eloquent will handle JSON encoding due to 'array' cast
         $postulacion->estado = 'pendiente';
         $postulacion->save();
 
