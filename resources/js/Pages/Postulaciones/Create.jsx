@@ -248,6 +248,22 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
         </div>
     );
 
+    const canSubmit = () => {
+        // Basic fields
+        if (!data.ingreso_familiar || !data.numero_miembros) return false;
+
+        // Indicators
+        if (!data.indicadores.vivienda || !data.indicadores.salud || !data.indicadores.alimentacion || !data.indicadores.dependencia) return false;
+
+        // Mandatory Files
+        if (!data.ficha_socioeconomica || !data.boletas_pago || !data.recibo_luz || !data.croquis || !data.dj_pronabec) return false;
+
+        // Signature
+        if (!hasSigned) return false;
+
+        return true;
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -257,6 +273,24 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
+                    {convocatorias.length === 0 ? (
+                        <div className="bg-white shadow-xl rounded-lg p-12 text-center border-t-4 border-[#1e3a5f]">
+                            <div className="flex justify-center mb-6 text-[#1e3a5f]">
+                                <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2 uppercase">No hay convocatorias vigentes</h2>
+                            <p className="text-gray-600 max-w-md mx-auto">
+                                Por el momento no se reciben nuevas postulaciones. Por favor, mantente atento a la próxima convocatoria de bienestar universitario.
+                            </p>
+                            <div className="mt-8">
+                                <SecondaryButton onClick={() => router.visit(route('dashboard'))}>
+                                    Volver al Dashboard
+                                </SecondaryButton>
+                            </div>
+                        </div>
+                    ) : (
                     <form onSubmit={submit} className="bg-white shadow-2xl p-8 min-h-screen border border-gray-300 relative text-sm">
 
                         {/* FUT Header */}
@@ -568,13 +602,24 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                         </div>
 
                         {/* Submit */}
-                        <div className="mt-8 flex justify-end space-x-4">
-                            <PrimaryButton className="px-8 py-3 text-lg" disabled={processing || convocatorias.length === 0}>
-                                {processing ? 'Enviando Trámite...' : 'ENVIAR FUT'}
-                            </PrimaryButton>
+                        <div className="mt-8 flex flex-col items-end">
+                            {!canSubmit() && (
+                                <p className="text-orange-600 text-xs font-bold mb-2 uppercase italic">
+                                    * Debe completar todos los campos obligatorios y firmar para enviar
+                                </p>
+                            )}
+                            <div className="flex space-x-4">
+                                <PrimaryButton
+                                    className={`px-8 py-3 text-lg transition-all duration-300 ${!canSubmit() || processing ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:scale-105'}`}
+                                    disabled={processing || !canSubmit()}
+                                >
+                                    {processing ? 'Enviando Trámite...' : 'ENVIAR FUT'}
+                                </PrimaryButton>
+                            </div>
                         </div>
 
                     </form>
+                    )}
                 </div>
             </div>
             <Modal show={showExistingModal} maxWidth="md" closeable={false}>

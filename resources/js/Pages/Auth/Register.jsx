@@ -74,7 +74,7 @@ export default function Register() {
                                     id="nombres"
                                     name="nombres"
                                     value={data.nombres}
-                                    className="mt-1 block w-full bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all"
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
                                     autoComplete="given-name"
                                     isFocused={true}
                                     onChange={(e) => setData('nombres', e.target.value)}
@@ -89,7 +89,7 @@ export default function Register() {
                                     id="apellidos"
                                     name="apellidos"
                                     value={data.apellidos}
-                                    className="mt-1 block w-full bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all"
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
                                     autoComplete="family-name"
                                     onChange={(e) => setData('apellidos', e.target.value)}
                                     required
@@ -104,7 +104,7 @@ export default function Register() {
                                 id="dni"
                                 name="dni"
                                 value={data.dni}
-                                className="mt-1 block w-full bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all"
+                                className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
                                 autoComplete="off"
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/\D/g, '').slice(0, 8);
@@ -124,7 +124,7 @@ export default function Register() {
                                 type="email"
                                 name="email"
                                 value={data.email}
-                                className="mt-1 block w-full bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all"
+                                className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
                                 autoComplete="username"
                                 onChange={(e) => setData('email', e.target.value)}
                                 required
@@ -141,7 +141,7 @@ export default function Register() {
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     value={data.password}
-                                    className="mt-1 block w-full bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all"
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
                                     autoComplete="new-password"
                                     onChange={(e) => setData('password', e.target.value)}
                                     required
@@ -156,7 +156,7 @@ export default function Register() {
                                     type={showPassword ? "text" : "password"}
                                     name="password_confirmation"
                                     value={data.password_confirmation}
-                                    className="mt-1 block w-full bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all"
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
                                     autoComplete="new-password"
                                     onChange={(e) => setData('password_confirmation', e.target.value)}
                                     required

@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { useState, useRef, useEffect } from 'react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
@@ -8,52 +8,22 @@ import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function Edit({ auth, mustVerifyEmail, status }) {
     const user = auth.user;
-    const [isEditing, setIsEditing] = useState(false);
 
+    // Form for contact details (blue box fields)
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         nombres: user.nombres,
         apellidos: user.apellidos,
-        apellido_paterno: user.apellido_paterno || '',
-        apellido_materno: user.apellido_materno || '',
         email: user.email,
-        sexo: user.sexo || 'M',
-        estado_civil: user.estado_civil || '',
-        fecha_nacimiento: user.fecha_nacimiento || '',
         telefono: user.telefono || '',
-        dni: user.dni || '',
-        codigo: user.codigo || '',
-
-        // Location
-        direccion_actual: user.direccion_actual || '',
-        ubigeo_actual: user.ubigeo_actual || '',
-        ubigeo_nacimiento: user.ubigeo_nacimiento || '',
-
-        // Education
-        nombre_colegio: user.nombre_colegio || '',
-        tipo_colegio: user.tipo_colegio || '',
-        anio_termino_colegio: user.anio_termino_colegio || '',
     });
 
-    const submit = (e) => {
+    const submitContact = (e) => {
         e.preventDefault();
         patch(route('profile.update'), {
-            onSuccess: () => setIsEditing(false),
+            preserveScroll: true,
         });
     };
 
-    const ReadOnlyField = ({ label, value }) => (
-        <div className="border border-gray-300">
-            <div className="bg-[#1e3a5f] text-white px-3 py-1 font-bold text-xs uppercase text-right w-full">
-                {label}
-            </div>
-            <div className="bg-white px-3 py-2 text-sm text-gray-800 min-h-[30px] font-medium uppercase border-t border-gray-300">
-                {value || '-'}
-            </div>
-        </div>
-    );
-
-    // Grid layout for read-only view matching screenshot
-    // Using simple HTML table-like structure via CSS grid
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -61,268 +31,167 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
         >
             <Head title="Mi Perfil" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="py-8 bg-[#e8f4fc]">
+                <div className="max-w-md mx-auto space-y-6">
 
-                    {/* Header with Title and Edit Button */}
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-xl font-bold text-[#1e3a5f]">Datos Personales</h3>
-                        <button
-                            onClick={() => setIsEditing(!isEditing)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1px-4 rounded shadow text-sm px-4"
-                        >
-                            {isEditing ? 'Cancelar Edición' : 'Editar'}
-                        </button>
+                    {/* Read-only Identity Section */}
+                    <div className="bg-white p-4 shadow-sm rounded-lg border border-gray-200">
+                        <h3 className="text-sm font-bold text-[#1e3a5f] uppercase mb-3 border-b pb-1">Datos de Identidad (No editables)</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase block">DNI</span>
+                                <span className="text-sm font-medium text-gray-800">{user.dni || '-'}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase block">Código</span>
+                                <span className="text-sm font-medium text-gray-800">{user.codigo || '-'}</span>
+                            </div>
+                            <div className="col-span-2">
+                                <span className="text-[10px] text-gray-500 font-bold uppercase block">Apellidos y Nombres</span>
+                                <span className="text-sm font-medium text-gray-800 uppercase">{user.apellidos} {user.nombres}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    {status === 'profile-updated' && (
-                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-                            <span className="block sm:inline">Perfil actualizado correctamente.</span>
+                    <div className="shadow-md rounded-lg overflow-hidden border border-gray-200">
+                        {/* Header with Title - matching screenshot */}
+                        <div className="bg-[#2d3748] text-white p-3 font-bold">
+                            Actualiza tus datos y cambia tu Contraseña
                         </div>
-                    )}
 
-                    {!isEditing ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Left Column: General & Address */}
-                            <div className="space-y-6">
-                                {/* Datos Generales Table Style */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos Generales
-                                    </div>
-                                    <div className="grid grid-cols-[140px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Código</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.codigo}</div>
+                        <div className="bg-white p-6">
 
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">DNI</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.dni}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r uppercase">Apellidos</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.apellidos} {user.apellido_paterno} {user.apellido_materno}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r uppercase">Nombres</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.nombres}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r uppercase">Sexo</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.sexo === 'M' ? 'MASCULINO' : 'FEMENINO'}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r uppercase">Estado Civil</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900 uppercase">{user.estado_civil}</div>
-                                    </div>
+                            {/* Status Message */}
+                            {recentlySuccessful && (
+                                <div className="mb-4 text-sm font-medium text-green-600">
+                                    Datos actualizados correctamente.
                                 </div>
+                            )}
 
-                                {/* Formacion Basica */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de Formación Básica
-                                    </div>
-                                    <div className="grid grid-cols-[140px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">UBIGEO Colegio</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.ubigeo_colegio}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Nombre Colegio</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.nombre_colegio}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Tipo Colegio</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.tipo_colegio}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Año Término</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">{user.anio_termino_colegio}</div>
-                                    </div>
-                                </div>
-
-                                {/* Domicilio Actual */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de Domicilio Actual
-                                    </div>
-                                    <div className="grid grid-cols-[140px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">UBIGEO Actual</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.ubigeo_actual}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Dirección</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.direccion_actual}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Referencia</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">-</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Column: PIDE Details */}
-                            <div className="space-y-6">
-                                {/* Datos PIDE */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos Adicionales
-                                    </div>
-                                    <div className="grid grid-cols-[160px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Apellido Paterno</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.apellido_paterno}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Apellido Materno</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.apellido_materno}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Nombres</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.nombres}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Fecha Nacimiento</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">{user.fecha_nacimiento}</div>
-                                    </div>
-                                </div>
-
-                                {/* Lugar Nacimiento */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de Lugar Nacimiento
-                                    </div>
-                                    <div className="grid grid-cols-[160px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">UBIGEO Nacimiento</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900 uppercase">{user.ubigeo_nacimiento}</div>
-                                    </div>
-                                </div>
-
-                                {/* Contacto Personal */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de contacto personal
-                                    </div>
-                                    <div className="grid grid-cols-[160px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Email</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.email}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Teléfono</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">{user.telefono}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        /* EDIT FORM */
-                        <form onSubmit={submit} className="bg-white p-6 rounded-lg shadow-lg">
-                            <h3 className="text-lg font-bold text-[#1e3a5f] mb-4 border-b pb-2">Editar Información</h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Apellidos Detallados */}
+                            {/* Contact Form */}
+                            <form onSubmit={submitContact} className="space-y-4">
                                 <div>
-                                    <InputLabel htmlFor="apellido_paterno" value="Apellido Paterno" />
-                                    <TextInput id="apellido_paterno" className="mt-1 block w-full" value={data.apellido_paterno} onChange={(e) => setData('apellido_paterno', e.target.value)} />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="apellido_materno" value="Apellido Materno" />
-                                    <TextInput id="apellido_materno" className="mt-1 block w-full" value={data.apellido_materno} onChange={(e) => setData('apellido_materno', e.target.value)} />
-                                </div>
-
-                                {/* Nombres & Sexo */}
-                                <div>
-                                    <InputLabel htmlFor="nombres" value="Nombres" />
-                                    <TextInput id="nombres" className="mt-1 block w-full bg-gray-100" value={data.nombres} disabled />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="sexo" value="Sexo" />
-                                    <select
-                                        id="sexo"
-                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                        value={data.sexo}
-                                        onChange={(e) => setData('sexo', e.target.value)}
-                                    >
-                                        <option value="M">Masculino</option>
-                                        <option value="F">Femenino</option>
-                                    </select>
-                                </div>
-
-                                {/* Fecha Nacimiento & Estado Civil */}
-                                <div>
-                                    <InputLabel htmlFor="fecha_nacimiento" value="Fecha de Nacimiento" />
-                                    <TextInput type="date" id="fecha_nacimiento" className="mt-1 block w-full" value={data.fecha_nacimiento} onChange={(e) => setData('fecha_nacimiento', e.target.value)} />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="estado_civil" value="Estado Civil" />
-                                    <select
-                                        id="estado_civil"
-                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                        value={data.estado_civil}
-                                        onChange={(e) => setData('estado_civil', e.target.value)}
-                                    >
-                                        <option value="">Seleccione</option>
-                                        <option value="SOLTERO">SOLTERO</option>
-                                        <option value="CASADO">CASADO</option>
-                                        <option value="DIVORCIADO">DIVORCIADO</option>
-                                        <option value="VIUDO">VIUDO</option>
-                                    </select>
-                                </div>
-
-                                {/* Contacto */}
-                                <div>
-                                    <InputLabel htmlFor="email" value="Email" />
-                                    <TextInput type="email" id="email" className="mt-1 block w-full" value={data.email} onChange={(e) => setData('email', e.target.value)} required />
+                                    <InputLabel htmlFor="email" value="Correo" className="text-gray-600 font-semibold" />
+                                    <TextInput
+                                        id="email"
+                                        type="email"
+                                        className="mt-1 block w-full bg-[#f0f7ff] border-gray-300"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        required
+                                    />
                                     <InputError message={errors.email} className="mt-2" />
                                 </div>
+
                                 <div>
-                                    <InputLabel htmlFor="telefono" value="Teléfono / Celular" />
-                                    <TextInput id="telefono" className="mt-1 block w-full" value={data.telefono} onChange={(e) => setData('telefono', e.target.value)} />
+                                    <InputLabel htmlFor="telefono" value="Celular" className="text-gray-600 font-semibold" />
+                                    <TextInput
+                                        id="telefono"
+                                        type="text"
+                                        className="mt-1 block w-full bg-[#f0f7ff] border-gray-300"
+                                        value={data.telefono}
+                                        onChange={(e) => setData('telefono', e.target.value)}
+                                    />
+                                    <InputError message={errors.telefono} className="mt-2" />
                                 </div>
 
-                                {/* Ubicacion */}
-                                <div className="col-span-2">
-                                    <h4 className="font-bold text-gray-700 mt-2 mb-2">Domicilio Actual</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <InputLabel htmlFor="direccion_actual" value="Dirección" />
-                                            <TextInput id="direccion_actual" className="mt-1 block w-full" value={data.direccion_actual} onChange={(e) => setData('direccion_actual', e.target.value)} />
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="ubigeo_actual" value="UBIGEO (Dep/Prov/Dist)" />
-                                            <TextInput id="ubigeo_actual" className="mt-1 block w-full" value={data.ubigeo_actual} onChange={(e) => setData('ubigeo_actual', e.target.value)} placeholder="MOQUEGUA/ILO/ILO" />
-                                        </div>
-                                    </div>
+                                <div>
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm transition"
+                                    >
+                                        Guardar cambios
+                                    </button>
                                 </div>
+                            </form>
 
-                                {/* Education */}
-                                <div className="col-span-2">
-                                    <h4 className="font-bold text-gray-700 mt-2 mb-2">Educación Básica</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <InputLabel htmlFor="nombre_colegio" value="Nombre Colegio" />
-                                            <TextInput id="nombre_colegio" className="mt-1 block w-full" value={data.nombre_colegio} onChange={(e) => setData('nombre_colegio', e.target.value)} />
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="tipo_colegio" value="Tipo (Publico/Privado)" />
-                                            <select
-                                                id="tipo_colegio"
-                                                className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                                value={data.tipo_colegio}
-                                                onChange={(e) => setData('tipo_colegio', e.target.value)}
-                                            >
-                                                <option value="">Seleccione</option>
-                                                <option value="PUBLICO">PUBLICO</option>
-                                                <option value="PRIVADO">PRIVADO</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="anio_termino_colegio" value="Año Término" />
-                                            <TextInput type="number" id="anio_termino_colegio" className="mt-1 block w-full" value={data.anio_termino_colegio} onChange={(e) => setData('anio_termino_colegio', e.target.value)} />
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="my-6 border-t border-gray-200"></div>
+
+                            {/* Password Section */}
+                            <div id="password">
+                                <UpdatePasswordForm_Custom />
                             </div>
-
-                            <div className="flex items-center justify-end mt-6 gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(false)}
-                                    className="text-gray-600 hover:text-gray-900"
-                                >
-                                    Cancelar
-                                </button>
-                                <PrimaryButton disabled={processing}>
-                                    Guardar Cambios
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+// Custom internal component to match the specific UI from screenshot
+function UpdatePasswordForm_Custom() {
+    const { data, setData, put, errors, reset, processing, recentlySuccessful } = useForm({
+        current_password: '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        put(route('password.update'), {
+            preserveScroll: true,
+            onSuccess: () => reset(),
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="space-y-4">
+            <div>
+                <InputLabel htmlFor="current_password" value="Contraseña Actual" className="text-gray-600 font-semibold" />
+                <TextInput
+                    id="current_password"
+                    type="password"
+                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300"
+                    value={data.current_password}
+                    onChange={(e) => setData('current_password', e.target.value)}
+                    autoComplete="current-password"
+                />
+                <InputError message={errors.current_password} className="mt-2" />
+            </div>
+
+            <div>
+                <InputLabel htmlFor="password" value="Nueva Contraseña" className="text-gray-600 font-semibold" />
+                <TextInput
+                    id="password"
+                    type="password"
+                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300"
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value)}
+                    autoComplete="new-password"
+                />
+                <InputError message={errors.password} className="mt-2" />
+            </div>
+
+            <div>
+                <InputLabel htmlFor="password_confirmation" value="Repite Contraseña" className="text-gray-600 font-semibold" />
+                <TextInput
+                    id="password_confirmation"
+                    type="password"
+                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300"
+                    value={data.password_confirmation}
+                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                    autoComplete="new-password"
+                />
+                <InputError message={errors.password_confirmation} className="mt-2" />
+            </div>
+
+            {recentlySuccessful && (
+                <div className="text-sm font-medium text-green-600">
+                    Contraseña actualizada correctamente.
+                </div>
+            )}
+
+            <div>
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm transition"
+                >
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
     );
 }
