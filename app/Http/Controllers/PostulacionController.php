@@ -13,15 +13,22 @@ class PostulacionController extends Controller
     public function index()
     {
         $query = Postulacion::with(['convocatoria', 'usuario', 'entrevista']);
+        $convocatoriasActivas = [];
 
         if (auth()->user()->rol === 'estudiante') {
             $query->where('usuario_id', auth()->id());
+
+            $convocatoriasActivas = Convocatoria::where('esta_activa', true)
+                ->whereDate('fecha_inicio', '<=', now())
+                ->whereDate('fecha_fin', '>=', now())
+                ->get();
         }
 
         $postulaciones = $query->latest()->get();
 
         return Inertia::render('Postulaciones/Index', [
             'postulaciones' => $postulaciones,
+            'convocatoriasActivas' => $convocatoriasActivas,
         ]);
     }
 

@@ -6,7 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import { useState } from 'react';
 import FUTViewer from '@/Components/FUTViewer';
 
-export default function Index({ auth, postulaciones }) {
+export default function Index({ auth, postulaciones, convocatoriasActivas }) {
     const isAdmin = ['admin', 'administrativo', 'coordinador'].includes(auth.user.rol);
     const [viewingPostulation, setViewingPostulation] = useState(null);
     const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'history'
@@ -63,16 +63,43 @@ export default function Index({ auth, postulaciones }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                    {/* Action Button for Students */}
+                    {/* Student View: Active Convocatorias or Warning */}
                     {auth.user.rol === 'estudiante' && (
-                        <div className="flex justify-end mb-6">
-                            <Link
-                                href={route('postulaciones.create')}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center"
-                            >
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                Nueva Solicitud
-                            </Link>
+                        <div className="mb-8">
+                            {convocatoriasActivas.length > 0 ? (
+                                <div className="space-y-4">
+                                    {convocatoriasActivas.map(convocatoria => (
+                                        <div key={convocatoria.id} className="bg-white border-l-4 border-blue-600 shadow-sm rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between">
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-800 uppercase">Convocatoria: {convocatoria.nombre}</h3>
+                                                <p className="text-sm text-gray-600">
+                                                    Vigencia: <span className="font-semibold">{new Date(convocatoria.fecha_inicio).toLocaleDateString()}</span> hasta <span className="font-semibold">{new Date(convocatoria.fecha_fin).toLocaleDateString()}</span>
+                                                </p>
+                                            </div>
+                                            <div className="mt-4 md:mt-0">
+                                                <Link
+                                                    href={route('postulaciones.create')}
+                                                    className="inline-flex items-center px-6 py-3 bg-[#1e3a5f] hover:bg-[#0f4c9b] text-white font-bold rounded-lg shadow transition uppercase text-sm"
+                                                >
+                                                    Iniciar postulación
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white shadow-sm border rounded-lg p-12 flex flex-col items-center justify-center text-center">
+                                    <div className="w-24 h-24 mb-6 text-yellow-500">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <h2 className="text-3xl font-bold text-orange-500 mb-4 uppercase">¡Advertencia!</h2>
+                                    <p className="text-gray-700 text-lg max-w-2xl">
+                                        ¡El Calendario Académico se encuentra cerrado para su sede ILO!, comunicarse con su Escuela Profesional
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
 

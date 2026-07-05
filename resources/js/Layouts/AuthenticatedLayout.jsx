@@ -23,8 +23,8 @@ export default function Authenticated({ user, header, children }) {
                 name: 'Datos Personales',
                 href: route('profile.edit'),
                 icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,3H5C3.89,3 3,3.9 3,5V19C3,20.1 3.89,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6M18,18H6V17C6,15 10,13.9 12,13.9C14,13.9 18,15 18,17V18Z" />
                     </svg>
                 ),
                 active: route().current('profile.edit')

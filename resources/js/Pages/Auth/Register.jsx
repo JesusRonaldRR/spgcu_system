@@ -8,6 +8,9 @@ export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
         nombres: '',
         apellidos: '',
+        apellido_paterno: '',
+        apellido_materno: '',
+        codigo: '',
         dni: '',
         email: '',
         password: '',
@@ -69,6 +72,30 @@ export default function Register() {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
+                                <InputLabel htmlFor="apellido_paterno" value="Apellido Paterno" className="text-gray-700 font-semibold mb-1" />
+                                <TextInput
+                                    id="apellido_paterno"
+                                    name="apellido_paterno"
+                                    value={data.apellido_paterno}
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
+                                    onChange={(e) => setData('apellido_paterno', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.apellido_paterno} className="mt-2" />
+                            </div>
+                            <div>
+                                <InputLabel htmlFor="apellido_materno" value="Apellido Materno" className="text-gray-700 font-semibold mb-1" />
+                                <TextInput
+                                    id="apellido_materno"
+                                    name="apellido_materno"
+                                    value={data.apellido_materno}
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
+                                    onChange={(e) => setData('apellido_materno', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.apellido_materno} className="mt-2" />
+                            </div>
+                            <div>
                                 <InputLabel htmlFor="nombres" value="Nombres" className="text-gray-700 font-semibold mb-1" />
                                 <TextInput
                                     id="nombres"
@@ -98,8 +125,21 @@ export default function Register() {
                             </div>
                         </div>
 
-                        <div>
-                            <InputLabel htmlFor="dni" value="DNI" className="text-gray-700 font-semibold mb-1" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <InputLabel htmlFor="codigo" value="Código Universitario" className="text-gray-700 font-semibold mb-1" />
+                                <TextInput
+                                    id="codigo"
+                                    name="codigo"
+                                    value={data.codigo}
+                                    className="mt-1 block w-full bg-[#f0f7ff] border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg h-11 px-4 text-gray-700 transition-all shadow-sm"
+                                    onChange={(e) => setData('codigo', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.codigo} className="mt-2" />
+                            </div>
+                            <div>
+                                <InputLabel htmlFor="dni" value="DNI" className="text-gray-700 font-semibold mb-1" />
                             <TextInput
                                 id="dni"
                                 name="dni"
