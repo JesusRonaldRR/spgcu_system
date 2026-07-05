@@ -63,6 +63,16 @@ export default function Dashboard({ auth }) {
                     badgeColor: 'bg-orange-500',
                     participants: null,
                 },
+                {
+                    title: 'OTROS SERVICIOS',
+                    subtitle: 'Bienestar',
+                    description: 'Accede a servicios adicionales de bienestar',
+                    href: route('otros-servicios.index'),
+                    color: 'from-sky-400 to-blue-500',
+                    badge: 'E',
+                    badgeColor: 'bg-orange-500',
+                    participants: null,
+                },
             ];
 
             return allModules.sort((a, b) => a.title.localeCompare(b.title)); // Optional sort, or keep predefined order

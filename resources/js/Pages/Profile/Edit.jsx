@@ -40,6 +40,15 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
         password_confirmation: '',
     });
 
+    // Ensure contact data is synced if props change
+    useEffect(() => {
+        setData({
+            ...data,
+            email: user.email || '',
+            telefono: user.telefono || '',
+        });
+    }, [user]);
+
     const submit = (e) => {
         e.preventDefault();
         patch(route('profile.update'), {

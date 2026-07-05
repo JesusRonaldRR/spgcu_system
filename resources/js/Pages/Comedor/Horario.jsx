@@ -168,7 +168,7 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
                                                         const expired = isMenuExpired(menu);
                                                         const cfg = mealConfig[menu.tipo] || { icon: '?', label: menu.tipo, color: 'bg-gray-100 border-gray-300 text-gray-700' };
 
-                                                        let itemClasses = `text-xs p-2 rounded border transition-all flex justify-between items-center `;
+                                                        let itemClasses = `text-[10px] p-1.5 rounded border transition-all flex flex-col `;
                                                         if (expired) {
                                                             itemClasses += `opacity-50 cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400 grayscale`;
                                                         } else if (isSelected) {
@@ -183,12 +183,17 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
                                                                 onClick={() => toggleSelection(menu, cell.date)}
                                                                 className={itemClasses}
                                                             >
-                                                                <span className="flex items-center gap-1">
-                                                                    <span>{cfg.icon}</span>
-                                                                    <span className="font-semibold">{cfg.label}</span>
-                                                                    {expired && <span className="ml-1 text-[10px] uppercase font-bold text-red-500">(Fin)</span>}
-                                                                </span>
-                                                                {isSelected && <span className="text-green-600 font-bold">✓</span>}
+                                                                <div className="flex justify-between items-center w-full">
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span>{cfg.icon}</span>
+                                                                        <span className="font-bold">{cfg.label}</span>
+                                                                    </span>
+                                                                    {isSelected && <span className="text-green-600 font-bold">✓</span>}
+                                                                </div>
+                                                                <div className="mt-1 text-[9px] text-gray-500 font-medium">
+                                                                    {menu.hora_inicio.substring(0, 5)} - {menu.hora_fin.substring(0, 5)}
+                                                                </div>
+                                                                {expired && <div className="text-[8px] uppercase font-black text-red-500 mt-0.5">FINALIZADO</div>}
                                                             </div>
                                                         );
                                                     })

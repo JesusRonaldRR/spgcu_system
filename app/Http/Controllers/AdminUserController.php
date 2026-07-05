@@ -37,7 +37,8 @@ class AdminUserController extends Controller
     {
         $request->validate([
             'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255', // Kept for backward compat, or auto-generated
+            'apellido_paterno' => 'required|string|max:255',
+            'apellido_materno' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:' . User::class,
             'password' => 'required|confirmed|min:8',
             'rol' => 'required|string|in:admin,coordinador,administrativo,estudiante,cocina',
@@ -64,7 +65,7 @@ class AdminUserController extends Controller
 
         $user = User::create([
             'nombres' => $request->nombres,
-            'apellidos' => $request->apellidos,
+            'apellidos' => $request->apellido_paterno . ' ' . $request->apellido_materno,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'rol' => $request->rol,
@@ -90,10 +91,20 @@ class AdminUserController extends Controller
             'contacto_emergencia_telefono' => $request->contacto_emergencia_telefono,
         ]);
 
-        // Auto-generate code for students if not provided
-        if ($user->rol === 'estudiante' && empty($user->codigo)) {
-            $year = date('Y'); // Should be 2026 based on previous step
-            $user->codigo = $year . '2040' . $user->id;
+        // Auto-generate code for users if not provided
+        if (empty($user->codigo)) {
+            $year = date('Y');
+            $rolCode = match($user->rol) {
+                'estudiante' => '2040',
+                'admin' => '1010',
+                'cocina' => '3030',
+                default => '5050'
+            };
+
+            // Generate a serial number based on count of users created this year
+            $countThisYear = User::where('codigo', 'like', $year . '%')->count();
+
+            $user->codigo = $year . $rolCode . str_pad($countThisYear, 3, '0', STR_PAD_LEFT);
             $user->save();
         }
 
