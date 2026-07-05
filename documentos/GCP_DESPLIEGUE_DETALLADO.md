@@ -36,10 +36,11 @@ Es la forma más fácil de desplegar.
     *   `APP_ENV`: `production`
     *   `APP_KEY`: Tu llave generada (ej. `base64:xxx...`)
     *   `DB_CONNECTION`: `mysql`
-    *   `DB_HOST`: `127.0.0.1` (Se conectará via socket)
+    *   `DB_HOST`: `127.0.0.1`
     *   `DB_DATABASE`: `spgcu_db`
     *   `DB_USERNAME`: `root`
     *   `DB_PASSWORD`: Tu contraseña de root de Cloud SQL.
+    *   `DB_SOCKET`: `/cloudsql/TU_CONNECTION_NAME` (Reemplaza con el nombre de conexión de tu instancia SQL)
 7. En la pestaña **Conexiones**, haz clic en **Agregar Instancia** y selecciona tu instancia de Cloud SQL creada en el Paso 3.
 8. Haz clic en **Crear**.
 

@@ -102,9 +102,10 @@ class AdminUserController extends Controller
             };
 
             // Generate a serial number based on count of users created this year
-            $countThisYear = User::where('codigo', 'like', $year . '%')->count();
+            // Make sure we use a unique ID that isn't easily reused
+            $serial = User::where('codigo', 'like', $year . '%')->count();
 
-            $user->codigo = $year . $rolCode . str_pad($countThisYear, 3, '0', STR_PAD_LEFT);
+            $user->codigo = $year . $rolCode . str_pad($serial, 3, '0', STR_PAD_LEFT);
             $user->save();
         }
 

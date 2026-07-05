@@ -34,15 +34,15 @@ export default function Focalizacion({ auth, postulaciones, stats }) {
             <Head title="Reporte Focalización" />
 
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-[#0f4c9b]/10 rounded-lg shadow-sm border border-[#0f4c9b]/5">
-                        <svg className="w-8 h-8 text-[#0f4c9b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                         <svg className="w-7 h-7 text-[#0f4c9b]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 21H4.6C4.03995 21 3.75992 21 3.54601 20.891C3.35785 20.7951 3.20487 20.6422 3.10899 20.454C3 20.2401 3 19.9601 3 19.4V3M20 16L15.5 9L11.5 13L8 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     </div>
                     <div>
-                        <h1 className="text-2xl font-extrabold text-[#1e3a5f]">Reporte de Focalización</h1>
-                        <p className="text-gray-500 text-sm">Clasificación socioeconómica de postulantes</p>
+                        <h1 className="text-2xl font-black text-[#1e3a5f] tracking-tight">Reporte de Focalización</h1>
+                        <p className="text-gray-400 text-[11px] font-bold uppercase tracking-widest leading-none mt-1">Clasificación socioeconómica de postulantes</p>
                     </div>
                 </div>
 
@@ -76,10 +76,13 @@ export default function Focalizacion({ auth, postulaciones, stats }) {
                 </div>
             </div>
 
-            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-                <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="text-lg font-black text-[#1e3a5f] uppercase tracking-tight">Ranking de Prioridad</h3>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Actualizado hoy</span>
+            <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
+                <div className="px-10 py-8 border-b border-gray-50 flex justify-between items-center">
+                    <h3 className="text-xl font-black text-[#1e3a5f] uppercase tracking-tighter">Ranking de Prioridad</h3>
+                    <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Actualizado hoy</span>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
