@@ -62,7 +62,7 @@ class AdminUserController extends Controller
             'contacto_emergencia_telefono' => 'nullable|string|max:20',
         ]);
 
-        User::create([
+        $user = User::create([
             'nombres' => $request->nombres,
             'apellidos' => $request->apellidos,
             'email' => $request->email,
@@ -89,6 +89,13 @@ class AdminUserController extends Controller
             'contacto_emergencia_nombre' => $request->contacto_emergencia_nombre,
             'contacto_emergencia_telefono' => $request->contacto_emergencia_telefono,
         ]);
+
+        // Auto-generate code for students if not provided
+        if ($user->rol === 'estudiante' && empty($user->codigo)) {
+            $year = date('Y'); // Should be 2026 based on previous step
+            $user->codigo = $year . '2040' . $user->id;
+            $user->save();
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario creado exitosamente.');
     }
@@ -159,6 +166,18 @@ class AdminUserController extends Controller
      */
     public function destroy(User $user)
     {
+        // 1. Prevent deleting the main admin (ID 1)
+        if ($user->id === 1) {
+            return back()->withErrors(['error' => 'No se puede eliminar el administrador principal del sistema.']);
+        }
+
+        // 2. Prevent admins from deleting other admins
+        if (auth()->user()->rol === 'admin' && $user->rol === 'admin') {
+             // Exception: ID 1 can delete other admins if needed, but standard admins cannot.
+             // But following the prompt "los admin no se pueden borrar entre si"
+             return back()->withErrors(['error' => 'Los administradores no pueden eliminarse entre sí.']);
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado exitosamente.');

@@ -143,6 +143,16 @@ export default function Dashboard({ auth }) {
                     badgeColor: 'bg-red-500',
                     participants: null,
                 },
+                {
+                    title: 'REPORTE FOCALIZACIÓN',
+                    subtitle: 'Bienestar Universitario',
+                    description: 'Generar informes socioeconómicos',
+                    href: route('reportes.focalizacion'),
+                    color: 'from-sky-500 to-blue-600',
+                    badge: 'A',
+                    badgeColor: 'bg-red-500',
+                    participants: null,
+                },
             ];
         }
 
@@ -247,7 +257,7 @@ export default function Dashboard({ auth }) {
                                     ESTUDIANTE
                                 </span>
                                 <span className="bg-orange-500 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                                    ACTIVO 2025-I
+                                    ACTIVO 2026-I
                                 </span>
                             </div>
                         </div>

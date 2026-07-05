@@ -29,16 +29,6 @@ export default function Authenticated({ user, header, children }) {
                 ),
                 active: route().current('profile.edit')
             },
-            {
-                name: 'Contraseña',
-                href: route('profile.edit') + '#password',
-                icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                ),
-                active: false
-            }
         ];
 
         if (user.rol === 'estudiante') {
@@ -291,7 +281,7 @@ export default function Authenticated({ user, header, children }) {
 
                             {/* Year Badge */}
                             <div className="hidden md:flex items-center bg-white/10 rounded-lg px-3 py-1.5 border border-white/20">
-                                <span className="text-sm font-medium">2025-I</span>
+                                <span className="text-sm font-medium">2026-I</span>
                             </div>
                         </div>
 
@@ -312,6 +302,7 @@ export default function Authenticated({ user, header, children }) {
                                 </Dropdown.Trigger>
                                 <Dropdown.Content>
                                     <Dropdown.Link href={route('profile.edit')}>Mi Perfil</Dropdown.Link>
+                                    <Dropdown.Link href={route('profile.edit') + '#password'}>Cambiar Contraseña</Dropdown.Link>
                                     <Dropdown.Link href={route('logout')} method="post" as="button">
                                         Cerrar Sesión
                                     </Dropdown.Link>
@@ -355,7 +346,7 @@ export default function Authenticated({ user, header, children }) {
 
             {/* Version Indicator */}
             <div className="fixed bottom-2 left-2 text-[10px] text-gray-400 z-40 select-none opacity-50">
-                v1.5 (2025)
+                v1.5 (2026)
             </div>
         </div>
     );

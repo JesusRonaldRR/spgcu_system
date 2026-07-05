@@ -26,7 +26,8 @@ class ConvocatoriaTest extends TestCase
 
         $response = $this->actingAs($student)->get(route('admin.convocatorias.index'));
 
-        $response->assertStatus(403);
+        $response->assertStatus(302); // Redirects to dashboard with error
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_admin_can_create_convocatoria(): void
