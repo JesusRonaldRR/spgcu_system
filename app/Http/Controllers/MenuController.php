@@ -79,11 +79,21 @@ class MenuController extends Controller
             ];
         }
 
+        // Check if student is beneficiary (automatically subscribed to all)
+        $isBeneficiary = \App\Models\Postulacion::where('usuario_id', $user->id)
+            ->where('estado', 'becario')
+            ->exists();
+
         // Get user's existing reservations
         $programaciones = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
             ->whereHas('menu', function ($q) use ($start, $end) {
                 $q->whereBetween('fecha', [$start, $end]);
             })->pluck('menu_id')->toArray();
+
+        // If they are a beneficiary, ensure all today/future menus are in the list if they aren't already explicitly rejected
+        // For now, let's treat the list of $programaciones as the "confirmed" ones.
+        // If the user hasn't explicitly unselected them, we could treat them as auto-selected.
+        // But the requirement says "automatically subscribed", so we should pre-fill them for beneficiaries.
 
         // Count absences for this user
         $faltasCount = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)

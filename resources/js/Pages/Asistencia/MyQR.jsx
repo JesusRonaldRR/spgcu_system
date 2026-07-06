@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { QRCodeCanvas } from 'qrcode.react';
 
-export default function MyQR({ auth, hasPostulation, qrHash, user }) {
+export default function MyQR({ auth, hasPostulation, qrHash, user, activeMenu }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -51,6 +51,16 @@ export default function MyQR({ auth, hasPostulation, qrHash, user }) {
                                     <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-sm">
                                         <span className="font-bold">💡 Tip:</span> Sube el brillo de tu pantalla al máximo para facilitar el escaneo.
                                     </div>
+
+                                    {activeMenu && (
+                                        <div className="bg-green-600 text-white rounded-xl p-4 shadow-lg animate-bounce mt-4">
+                                            <div className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Servicio Activo</div>
+                                            <div className="text-2xl font-black">{activeMenu.tipo.toUpperCase()}</div>
+                                            <div className="text-[10px] font-bold mt-1">
+                                                DISPONIBLE HASTA LAS {activeMenu.hora_fin.substring(0, 5)}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </>
                         ) : (

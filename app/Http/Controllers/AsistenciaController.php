@@ -36,10 +36,20 @@ class AsistenciaController extends Controller
             })
             ->first();
 
+        // Find if there is an active menu right now
+        $now = Carbon::now();
+        $currentTime = $now->format('H:i:s');
+        $activeMenu = \App\Models\Menu::where('fecha', $now->toDateString())
+            ->where('hora_inicio', '<=', $currentTime)
+            ->where('hora_fin', '>=', $currentTime)
+            ->first();
+
         return Inertia::render('Asistencia/MyQR', [
             'hasPostulation' => (bool) $postulacion,
             'qrHash' => $postulacion ? $postulacion->hash_qr : null,
             'user' => $user->only('nombres', 'apellidos', 'codigo', 'dni'),
+            'activeMenu' => $activeMenu,
+            'serverTime' => $currentTime
         ]);
     }
 
@@ -64,41 +74,33 @@ class AsistenciaController extends Controller
             return response()->json(['message' => 'Código QR inválido o estudiante no es beneficiario.'], 404);
         }
 
-        // 2. Find Active Reservation for NOW
-        $now = Carbon::now(); // e.g., 2025-12-16 13:30:00
+        // 2. Find Active Menu for NOW
+        $now = Carbon::now();
         $currentTime = $now->format('H:i:s');
         $todayDate = $now->toDateString();
 
-        // Check if there is ANY reservation for the user today that covers the current time
+        // Check if there is a menu active at this moment
+        $menuActivo = \App\Models\Menu::where('fecha', $todayDate)
+            ->where('hora_inicio', '<=', $currentTime)
+            ->where('hora_fin', '>=', $currentTime)
+            ->first();
+
+        if (!$menuActivo) {
+             return response()->json(['message' => 'No hay servicio de comedor activo en este horario.'], 403);
+        }
+
+        // Check if student has a reservation or auto-create it (as per requirement: "automatically subscribed")
         $programacion = \App\Models\ProgramacionComedor::where('usuario_id', $postulacion->usuario_id)
-            ->whereHas('menu', function ($q) use ($todayDate, $currentTime) {
-                // Menu date must be today
-                $q->where('fecha', $todayDate)
-                    // Current time must be within Start and End time of the menu
-                    ->where('hora_inicio', '<=', $currentTime)
-                    ->where('hora_fin', '>=', $currentTime);
-            })
-            ->with('menu')
+            ->where('menu_id', $menuActivo->id)
             ->first();
 
         if (!$programacion) {
-            // FALLBACK FOR TESTING: If strict match fails, check for ANY pending reservation TODAY
-            // This allows testing at 2 AM or late arrivals
-            $programacion = \App\Models\ProgramacionComedor::where('usuario_id', $postulacion->usuario_id)
-                ->where('estado', 'programado')
-                ->whereHas('menu', function ($q) use ($todayDate) {
-                    $q->where('fecha', $todayDate);
-                })
-                ->with('menu')
-                // Prioritize the earliest meal (e.g., Breakfast before Lunch)
-                ->join('menus', 'programaciones_comedor.menu_id', '=', 'menus.id')
-                ->orderBy('menus.hora_inicio', 'asc')
-                ->select('programaciones_comedor.*') // Avoid column collision
-                ->first();
-        }
-
-        if (!$programacion) {
-            return response()->json(['message' => 'No tiene ninguna reserva pendiente para HOY.'], 403);
+            // Auto-subscribe student since they are a beneficiary and scanning during the window
+            $programacion = \App\Models\ProgramacionComedor::create([
+                'usuario_id' => $postulacion->usuario_id,
+                'menu_id' => $menuActivo->id,
+                'estado' => 'programado'
+            ]);
         }
 
         if ($programacion->estado === 'asistio') {
