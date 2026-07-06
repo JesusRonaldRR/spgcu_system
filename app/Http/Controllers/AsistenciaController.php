@@ -64,14 +64,37 @@ class AsistenciaController extends Controller
 
         $hash = $request->input('hash_qr');
 
-        // 1. Find the postulation associated with this hash (must be becario)
+        // 1. Find the postulation/user associated with this hash or code
+        // It could be a Hash QR (from app) or a manual DNI/Code
         $postulacion = Postulacion::where('hash_qr', $hash)
             ->where('estado', 'becario')
             ->with('usuario')
             ->first();
 
+        $identifiedUser = null;
         if (!$postulacion) {
-            return response()->json(['message' => 'Código QR inválido o estudiante no es beneficiario.'], 404);
+            // Try searching by DNI or University Code (for manual input)
+            $user = User::where('dni', $hash)->orWhere('codigo', $hash)->first();
+            if ($user) {
+                $identifiedUser = $user;
+                $postulacion = Postulacion::where('usuario_id', $user->id)
+                    ->where('estado', 'becario')
+                    ->with('usuario')
+                    ->first();
+            }
+        } else {
+            $identifiedUser = $postulacion->usuario;
+        }
+
+        if (!$postulacion) {
+            $msg = $identifiedUser
+                ? "Estudiante identificado: {$identifiedUser->nombres} {$identifiedUser->apellidos}, pero NO es un beneficiario activo."
+                : "Identificación no válida o el estudiante no está en el sistema.";
+            return response()->json([
+                'message' => $msg,
+                'student' => $identifiedUser ? "{$identifiedUser->nombres} {$identifiedUser->apellidos}" : null,
+                'status' => 'not_beneficiary'
+            ], 404);
         }
 
         // 2. Find Active Menu for NOW
@@ -86,7 +109,11 @@ class AsistenciaController extends Controller
             ->first();
 
         if (!$menuActivo) {
-             return response()->json(['message' => 'No hay servicio de comedor activo en este horario.'], 403);
+             return response()->json([
+                 'message' => 'No hay servicio de comedor activo en este horario.',
+                 'student' => $identifiedUser ? "{$identifiedUser->nombres} {$identifiedUser->apellidos}" : null,
+                 'status' => 'no_active_menu'
+             ], 403);
         }
 
         // Check if student has a reservation or auto-create it (as per requirement: "automatically subscribed")
@@ -104,7 +131,11 @@ class AsistenciaController extends Controller
         }
 
         if ($programacion->estado === 'asistio') {
-            return response()->json(['message' => "Ya registró asistencia para " . ucfirst($programacion->menu->tipo) . "."], 409);
+            return response()->json([
+                'message' => "Ya registró asistencia para " . ucfirst($programacion->menu->tipo) . ".",
+                'student' => "{$postulacion->usuario->nombres} {$postulacion->usuario->apellidos}",
+                'status' => 'already_scanned'
+            ], 409);
         }
 
         // 3. Record attendance

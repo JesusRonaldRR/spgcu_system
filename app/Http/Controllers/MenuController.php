@@ -90,10 +90,22 @@ class MenuController extends Controller
                 $q->whereBetween('fecha', [$start, $end]);
             })->pluck('menu_id')->toArray();
 
-        // If they are a beneficiary, ensure all today/future menus are in the list if they aren't already explicitly rejected
-        // For now, let's treat the list of $programaciones as the "confirmed" ones.
-        // If the user hasn't explicitly unselected them, we could treat them as auto-selected.
-        // But the requirement says "automatically subscribed", so we should pre-fill them for beneficiaries.
+        // If they are a beneficiary, ensure all today/future menus are in the list (Auto-Subscription)
+        if ($isBeneficiary && $user->rol === 'estudiante') {
+            $allMenus = \App\Models\Menu::whereBetween('fecha', [$start, $end])->get();
+            foreach ($allMenus as $menu) {
+                if (!in_array($menu->id, $programaciones)) {
+                    // Create auto-subscription
+                    \App\Models\ProgramacionComedor::firstOrCreate([
+                        'usuario_id' => $user->id,
+                        'menu_id' => $menu->id,
+                    ], [
+                        'estado' => 'programado'
+                    ]);
+                    $programaciones[] = $menu->id;
+                }
+            }
+        }
 
         // Count absences for this user
         $faltasCount = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
