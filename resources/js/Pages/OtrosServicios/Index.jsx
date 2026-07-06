@@ -48,9 +48,9 @@ export default function Index({ auth, servicios, misSolicitudes }) {
 
                     {/* Welcome Banner */}
                     <div className="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-lg shadow-lg p-6 text-white">
-                        <h3 className="text-2xl font-bold mb-2">¡Bienvenido Beneficiario!</h3>
+                        <h3 className="text-2xl font-bold mb-2 uppercase">Servicios de Bienestar Universitario</h3>
                         <p className="text-teal-100 text-lg">
-                            Como beneficiario del Comedor Universitario, tienes acceso exclusivo a estos servicios adicionales.
+                            Gestiona tus solicitudes para servicios médicos, nutricionales y de apoyo estudiantil.
                         </p>
                     </div>
 
