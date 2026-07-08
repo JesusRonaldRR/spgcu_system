@@ -35,13 +35,13 @@ class ConvocatoriaTest extends TestCase
         $admin = User::factory()->create(['rol' => 'admin']);
 
         $response = $this->actingAs($admin)->post(route('admin.convocatorias.store'), [
-            'nombre' => 'Convocatoria 2025-I',
+            'nombre' => 'Convocatoria 2026-I',
             'fecha_inicio' => now()->toDateString(),
             'fecha_fin' => now()->addMonth()->toDateString(),
             'esta_activa' => true,
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('convocatorias', ['nombre' => 'Convocatoria 2025-I']);
+        $this->assertDatabaseHas('convocatorias', ['nombre' => 'Convocatoria 2026-I']);
     }
 }

@@ -101,11 +101,18 @@ class AdminUserController extends Controller
                 default => '5050'
             };
 
-            // Generate a serial number based on count of users created this year
-            // Make sure we use a unique ID that isn't easily reused
-            $serial = User::where('codigo', 'like', $year . '%')->count();
+            // Generate a serial number based on the highest existing code for this year
+            $lastUser = User::where('codigo', 'like', $year . $rolCode . '%')
+                ->orderBy('codigo', 'desc')
+                ->first();
 
-            $user->codigo = $year . $rolCode . str_pad($serial, 3, '0', STR_PAD_LEFT);
+            $nextSerial = 1;
+            if ($lastUser) {
+                $lastSerial = (int) substr($lastUser->codigo, -3);
+                $nextSerial = $lastSerial + 1;
+            }
+
+            $user->codigo = $year . $rolCode . str_pad($nextSerial, 3, '0', STR_PAD_LEFT);
             $user->save();
         }
 

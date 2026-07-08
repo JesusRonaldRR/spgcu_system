@@ -106,7 +106,7 @@ export default function ForgotPassword({ status }) {
 
                     {/* Footer con info de soporte */}
                     <div className="mt-12 pt-6 border-t border-gray-100 text-center">
-                        <span className="text-xs text-gray-400">© 2024 UNAM - Bienestar Universitario</span>
+                        <span className="text-xs text-gray-400">© 2026 UNAM - Bienestar Universitario</span>
                     </div>
                 </div>
             </div>

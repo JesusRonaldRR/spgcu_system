@@ -15,6 +15,11 @@ class ProgramacionComedor extends Model
         'usuario_id',
         'menu_id',
         'estado', // 'programado', 'asistio', 'falta', 'justificado'
+        'confirmado'
+    ];
+
+    protected $casts = [
+        'confirmado' => 'boolean'
     ];
 
     public function menu()

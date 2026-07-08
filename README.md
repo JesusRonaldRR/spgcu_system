@@ -98,5 +98,5 @@ Facultad de Ingeniería - Escuela Profesional de Ingeniería de Sistemas e Infor
 *Curso: Analisis y diseño de sistemas*  
 *Docente: Ing. Honorio Apaza Alanoca *
 
-Moquegua - Perú | 2025
+Moquegua - Perú | 2026
 

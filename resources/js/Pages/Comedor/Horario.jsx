@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
 
-export default function Horario({ auth, menus, programaciones, startDate, faltasCount = 0, serverDate, serverTime }) {
+export default function Horario({ auth, menus, programaciones, programacionesDetalle, startDate, faltasCount = 0, serverDate, serverTime }) {
     const [selectedMenuIds, setSelectedMenuIds] = useState([]);
 
     // Initialize from props
@@ -97,7 +97,15 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
             menus: selectedForDay
         }, {
             preserveScroll: true,
-            onSuccess: () => alert('¡Guardado!')
+            onSuccess: () => alert('¡Horario guardado!')
+        });
+    };
+
+    const handleConfirmar = (menuId, confirmado) => {
+        router.post(route('menus.confirmar', menuId), {
+            confirmado: confirmado
+        }, {
+            preserveScroll: true
         });
     };
 
@@ -125,9 +133,13 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
 
                     {/* Info Banner */}
                     <div className="bg-white rounded-lg shadow p-4 mb-6 flex justify-between items-center border-l-4 border-green-500">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-800">📅 Programa tus Comidas</h3>
-                            <p className="text-gray-600 text-sm">Selecciona los menús a los que asistirás. Máximo 3 por día.</p>
+                        <div className="max-w-xl">
+                            <h3 className="text-xl font-bold text-gray-800">📅 Mis Reservas</h3>
+                            <p className="text-gray-600 text-sm">
+                                Selecciona los menús a los que asistirás.
+                                <b> Importante:</b> Para optimizar las raciones de cocina, marca "Confirmar"
+                                para asegurar tu plato del día siguiente.
+                            </p>
                         </div>
                         <div className="text-center bg-gray-100 p-3 rounded">
                             <div className="text-xs text-gray-500 uppercase">Inasistencias</div>
@@ -152,20 +164,21 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
                             {calendarDays.map((cell, idx) => (
                                 <div
                                     key={idx}
-                                    className={`min-h-[140px] border-b border-r p-2 flex flex-col ${cell.isEmpty ? 'bg-gray-50' : 'bg-white'}`}
+                                    className={`min-h-[160px] border-b border-r p-2 flex flex-col ${cell.isEmpty ? 'bg-gray-50' : 'bg-white'}`}
                                 >
                                     {!cell.isEmpty && (
                                         <>
                                             <div className={`text-right text-sm font-bold mb-1 ${cell.date === todayStr ? 'text-blue-600' : 'text-gray-400'}`}>
                                                 {cell.day}
                                             </div>
-                                            <div className="flex-grow space-y-1">
+                                            <div className="flex-grow space-y-2">
                                                 {cell.menus.length === 0 ? (
                                                     <div className="text-xs text-gray-300 italic text-center py-3">Sin servicio</div>
                                                 ) : (
                                                     cell.menus.map(menu => {
                                                         const isSelected = selectedMenuIds.includes(menu.id);
                                                         const expired = isMenuExpired(menu);
+                                                        const detalle = programacionesDetalle?.[menu.id];
                                                         const cfg = mealConfig[menu.tipo] || { icon: '?', label: menu.tipo, color: 'bg-gray-100 border-gray-300 text-gray-700' };
 
                                                         let itemClasses = `text-[10px] p-1.5 rounded border transition-all flex flex-col `;
@@ -178,29 +191,43 @@ export default function Horario({ auth, menus, programaciones, startDate, faltas
                                                         }
 
                                                         return (
-                                                            <div
-                                                                key={menu.id}
-                                                                onClick={() => toggleSelection(menu, cell.date)}
-                                                                className={itemClasses}
-                                                            >
-                                                                <div className="flex justify-between items-center w-full">
-                                                                    <span className="flex items-center gap-1">
-                                                                        <span>{cfg.icon}</span>
-                                                                        <span className="font-bold">{cfg.label}</span>
-                                                                    </span>
-                                                                    {isSelected && <span className="text-green-600 font-bold">✓</span>}
+                                                            <div key={menu.id} className="space-y-1">
+                                                                <div
+                                                                    onClick={() => toggleSelection(menu, cell.date)}
+                                                                    className={itemClasses}
+                                                                >
+                                                                    <div className="flex justify-between items-center w-full">
+                                                                        <span className="flex items-center gap-1">
+                                                                            <span>{cfg.icon}</span>
+                                                                            <span className="font-bold">{cfg.label}</span>
+                                                                        </span>
+                                                                        {isSelected && <span className="text-green-600 font-bold">✓</span>}
+                                                                    </div>
+                                                                    <div className="mt-1 text-[9px] text-gray-500 font-medium">
+                                                                        {menu.hora_inicio.substring(0, 5)} - {menu.hora_fin.substring(0, 5)}
+                                                                    </div>
+                                                                    {expired && <div className="text-[8px] uppercase font-black text-red-500 mt-0.5">FINALIZADO</div>}
                                                                 </div>
-                                                                <div className="mt-1 text-[9px] text-gray-500 font-medium">
-                                                                    {menu.hora_inicio.substring(0, 5)} - {menu.hora_fin.substring(0, 5)}
-                                                                </div>
-                                                                {expired && <div className="text-[8px] uppercase font-black text-red-500 mt-0.5">FINALIZADO</div>}
+
+                                                                {/* Confirmation Toggle (Only for current reservations & NOT EXPIRED) */}
+                                                                {isSelected && !expired && (
+                                                                    <div className="flex items-center justify-between px-1">
+                                                                        <span className="text-[8px] font-bold text-indigo-700 uppercase">Confirmar?</span>
+                                                                        <button
+                                                                            onClick={() => handleConfirmar(menu.id, !detalle?.confirmado)}
+                                                                            className={`w-10 h-4 rounded-full relative transition-colors duration-200 ${detalle?.confirmado ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                                                                        >
+                                                                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 ${detalle?.confirmado ? 'translate-x-6' : 'translate-x-1'}`}></div>
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         );
                                                     })
                                                 )}
                                             </div>
                                             {cell.menus.length > 0 && (
-                                                <div className="pt-2 mt-1 border-t flex justify-between items-center">
+                                                <div className="pt-2 mt-2 border-t flex justify-between items-center">
                                                     {(cell.date >= serverDate) && (
                                                         <button
                                                             onClick={() => saveDay(cell.date)}

@@ -26,7 +26,7 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
         ingreso_familiar: '',
         numero_miembros: '',
         condicion_vivienda: 'propia',
-        fundamentacion: 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2025-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.',
+        fundamentacion: 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2026-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.',
         indicadores: {
             vivienda: '',
             salud: '',

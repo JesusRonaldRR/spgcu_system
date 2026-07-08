@@ -208,7 +208,7 @@ export default function Dashboard({ auth }) {
                     title: 'ESCÁNER QR',
                     subtitle: 'Servicio de Comidas',
                     description: 'Verificar beneficiarios en la fila',
-                    href: route('asistencia.scanner'),
+                    href: route('cocina.asistencia.scanner'),
                     color: 'from-lime-500 to-green-600',
                     badge: 'C',
                     badgeColor: 'bg-green-600',

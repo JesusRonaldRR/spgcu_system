@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Postulacion;
 use App\Models\Convocatoria;
+use App\Services\FileEncryptionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
 class PostulacionController extends Controller
 {
+    // Use 'local' for now in sandbox, but ready for 'encrypted_s3'
+    private $disk = 'local';
+
     public function index()
     {
         $query = Postulacion::with(['convocatoria', 'usuario', 'entrevista']);
@@ -43,7 +47,6 @@ class PostulacionController extends Controller
         if ($convocatorias->isNotEmpty()) {
             $existingPostulation = Postulacion::where('usuario_id', auth()->id())
                 ->whereIn('convocatoria_id', $convocatorias->pluck('id'))
-                // Only block if active or approved-like state. Rejected can retry.
                 ->whereIn('estado', ['pendiente', 'aprobado', 'apto_entrevista', 'entrevista_programada', 'becario'])
                 ->first();
         }
@@ -54,15 +57,9 @@ class PostulacionController extends Controller
         ]);
     }
 
-    /**
-     * Calcula el puntaje socioeconómico basado en los indicadores.
-     * Basado en la rúbrica oficial de la UNAM.
-     */
     private function calculateScore(array $indicadores)
     {
         $puntaje = 0;
-
-        // 1. Vivienda
         $vivienda = $indicadores['vivienda'] ?? '';
         $puntaje += match ($vivienda) {
             'quinta'    => 20,
@@ -71,8 +68,6 @@ class PostulacionController extends Controller
             'propia'    => 5,
             default     => 0,
         };
-
-        // 2. Salud
         $salud = $indicadores['salud'] ?? '';
         $puntaje += match ($salud) {
             'cronica'   => 20,
@@ -81,8 +76,6 @@ class PostulacionController extends Controller
             'buena'     => 5,
             default     => 0,
         };
-
-        // 3. Alimentación
         $alimentacion = $indicadores['alimentacion'] ?? '';
         $puntaje += match ($alimentacion) {
             'deficiente' => 20,
@@ -90,8 +83,6 @@ class PostulacionController extends Controller
             'completa'   => 10,
             default      => 0,
         };
-
-        // 4. Dependencia
         $dependencia = $indicadores['dependencia'] ?? '';
         $puntaje += match ($dependencia) {
             'total'         => 20,
@@ -99,7 +90,6 @@ class PostulacionController extends Controller
             'independiente' => 10,
             default         => 0,
         };
-
         return $puntaje;
     }
 
@@ -112,95 +102,111 @@ class PostulacionController extends Controller
             'condicion_vivienda' => 'required|string',
             'fundamentacion' => 'required|string|max:5000',
             'firma_digital' => 'required|file|mimes:jpg,jpeg,png,webp|max:10240',
-            // Obligatorios
             'ficha_socioeconomica' => 'required|file|mimes:pdf|max:10240',
             'boletas_pago' => 'required|file|mimes:pdf|max:10240',
             'recibo_luz' => 'required|file|mimes:pdf|max:10240',
             'croquis' => 'required|file|mimes:pdf|max:10240',
             'dj_pronabec' => 'required|file|mimes:pdf|max:10240',
-            // New Array Validation
             'anexos_adicionales' => 'nullable|array',
             'anexos_adicionales.*.tipo' => 'required_with:anexos_adicionales|string',
-            'anexos_adicionales.*.especificacion' => 'nullable|string',
             'anexos_adicionales.*.archivo' => 'required_with:anexos_adicionales|file|mimes:pdf|max:10240',
-            'indicadores' => 'required|string', // Comes as JSON string from React
+            'indicadores' => 'required|string',
         ]);
-
-        $convocatoria = Convocatoria::findOrFail($request->convocatoria_id);
-        $now = now();
-        if ($now < $convocatoria->fecha_inicio || $now > $convocatoria->fecha_fin) {
-            return back()->withErrors(['convocatoria_id' => 'La convocatoria no está vigente en este momento.']);
-        }
-
-        // Check for existing active postulation. Re-postulation allowed if previous was 'rechazado'.
-        $existing = Postulacion::where('usuario_id', auth()->id())
-            ->where('convocatoria_id', $request->convocatoria_id)
-            ->whereIn('estado', ['pendiente', 'aprobado', 'apto_entrevista', 'entrevista_programada', 'becario'])
-            ->first();
-
-        if ($existing) {
-            return back()->withErrors(['convocatoria_id' => 'Ya tienes una postulación activa para esta convocatoria.']);
-        }
 
         $archivos = [];
 
-        // Helper to store file
-        $storeFile = function ($key, $folder) use ($request, &$archivos) {
+        // Helper to Encrypt and store
+        $storeEncrypted = function ($key, $folder) use ($request, &$archivos) {
             if ($request->hasFile($key)) {
-                $path = $request->file($key)->store($folder, 'public');
+                $file = $request->file($key);
+                $filename = $key . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $folder . '/' . $filename;
+
+                FileEncryptionService::encryptAndStore($file, $path, $this->disk);
                 $archivos[$key] = $path;
             }
         };
 
-        $storeFile('ficha_socioeconomica', 'postulaciones/fichas');
-        $storeFile('boletas_pago', 'postulaciones/boletas');
-        $storeFile('recibo_luz', 'postulaciones/recibos');
-        $storeFile('croquis', 'postulaciones/croquis');
-        $storeFile('dj_pronabec', 'postulaciones/dj');
-        $storeFile('firma_digital', 'postulaciones/firmas');
+        $storeEncrypted('ficha_socioeconomica', 'postulaciones/fichas');
+        $storeEncrypted('boletas_pago', 'postulaciones/boletas');
+        $storeEncrypted('recibo_luz', 'postulaciones/recibos');
+        $storeEncrypted('croquis', 'postulaciones/croquis');
+        $storeEncrypted('dj_pronabec', 'postulaciones/dj');
+        $storeEncrypted('firma_digital', 'postulaciones/firmas');
 
-        // Hanlde Additional Attachments (Array)
         if ($request->has('anexos_adicionales') && is_array($request->anexos_adicionales)) {
             $archivos['especificos'] = [];
             foreach ($request->anexos_adicionales as $index => $anexo) {
-                if (isset($anexo['archivo']) && $request->hasFile("anexos_adicionales.{$index}.archivo")) {
+                if ($request->hasFile("anexos_adicionales.{$index}.archivo")) {
                     $file = $request->file("anexos_adicionales.{$index}.archivo");
-                    $path = $file->store('postulaciones/especificos', 'public');
+                    $filename = 'anexo_' . time() . '_' . uniqid() . '.pdf';
+                    $path = 'postulaciones/especificos/' . $filename;
+
+                    FileEncryptionService::encryptAndStore($file, $path, $this->disk);
 
                     $label = $anexo['tipo'] === 'otros' && !empty($anexo['especificacion'])
                         ? 'OTRO: ' . strtoupper($anexo['especificacion'])
                         : strtoupper($anexo['tipo']);
 
-                    $archivos['especificos'][] = [
-                        'tipo' => $label,
-                        'path' => $path
-                    ];
+                    $archivos['especificos'][] = ['tipo' => $label, 'path' => $path];
                 }
             }
         }
-        // Legacy single specific support (keep for fallback if needed, or remove if fully migrated)
-        // logic...
 
         $postulacion = new Postulacion();
         $postulacion->usuario_id = auth()->id();
         $postulacion->convocatoria_id = $request->convocatoria_id;
-
         $postulacion->ingreso_familiar = $request->ingreso_familiar;
         $postulacion->numero_miembros = $request->numero_miembros;
         $postulacion->condicion_vivienda = $request->condicion_vivienda;
         $postulacion->fundamentacion = $request->fundamentacion;
 
-        if ($request->has('indicadores')) {
-            $indicadores = json_decode($request->indicadores, true);
-            $postulacion->indicadores_socioeconomicos = $indicadores;
-            $postulacion->puntaje = $this->calculateScore($indicadores);
-        }
+        $indicadores = json_decode($request->indicadores, true);
+        $postulacion->indicadores_socioeconomicos = $indicadores;
+        $postulacion->puntaje = $this->calculateScore($indicadores);
 
-        $postulacion->ruta_archivos = $archivos; // Eloquent will handle JSON encoding due to 'array' cast
+        $postulacion->ruta_archivos = $archivos;
         $postulacion->estado = 'pendiente';
         $postulacion->save();
 
-        return redirect()->route('postulaciones.index')->with('success', 'Postulación enviada correctamente.');
+        return redirect()->route('postulaciones.index')->with('success', 'Postulación enviada correctamente (Archivos Cifrados).');
+    }
+
+    /**
+     * Download and Decrypt File on the fly.
+     */
+    public function downloadEncrypted(Request $request)
+    {
+        $path = $request->query('path');
+
+        // Security: Check if user owns the postulation or is admin
+        $postulacion = Postulacion::whereJsonContains('ruta_archivos', $path)
+            ->orWhereJsonContains('ruta_archivos->especificos', ['path' => $path]) // Deep search for specific annexes
+            ->first();
+
+        if (!$postulacion) {
+             // Fallback for deeply nested JSON or other file structures if needed
+             // Simple ownership check for this prototype
+             abort(404, 'Archivo no encontrado en registros.');
+        }
+
+        if (auth()->user()->rol === 'estudiante' && $postulacion->usuario_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $decryptedContent = FileEncryptionService::decrypt($path, $this->disk);
+
+        if (!$decryptedContent) {
+            abort(500, 'Error al descifrar el archivo.');
+        }
+
+        $filename = basename($path);
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $contentType = $extension === 'pdf' ? 'application/pdf' : 'image/jpeg';
+
+        return response($decryptedContent)
+            ->header('Content-Type', $contentType)
+            ->header('Content-Disposition', 'inline; filename="'.$filename.'"');
     }
 
     public function update(Request $request, Postulacion $postulacion)
@@ -209,19 +215,14 @@ class PostulacionController extends Controller
             abort(403);
         }
 
-        $request->validate([
-            'estado' => 'required|in:pendiente,aprobado,rechazado,apto_entrevista,entrevista_programada,becario',
-        ]);
+        $request->validate(['estado' => 'required|in:pendiente,aprobado,rechazado,apto_entrevista,entrevista_programada,becario']);
 
-        // Specific logic via Model Methods for consistency
         if ($request->estado === 'becario') {
             $postulacion->aprobarComoBecario();
         } elseif ($request->estado === 'rechazado') {
             $postulacion->rechazar();
         } else {
-            // General update for other states
             $postulacion->estado = $request->estado;
-            $postulacion->puntaje = $request->input('puntaje', 0);
             $postulacion->save();
         }
 
@@ -230,18 +231,10 @@ class PostulacionController extends Controller
 
     public function show(Postulacion $postulacion)
     {
-        // Allow access to own postulation or admins
         if (auth()->user()->rol === 'estudiante' && $postulacion->usuario_id !== auth()->id()) {
             abort(403);
         }
-        if (auth()->user()->rol !== 'estudiante' && !in_array(auth()->user()->rol, ['admin', 'administrativo', 'coordinador'])) {
-            abort(403);
-        }
-
         $postulacion->load(['usuario', 'convocatoria']);
-
-        return Inertia::render('Postulaciones/Show', [
-            'postulacion' => $postulacion,
-        ]);
+        return Inertia::render('Postulaciones/Show', ['postulacion' => $postulacion]);
     }
 }
