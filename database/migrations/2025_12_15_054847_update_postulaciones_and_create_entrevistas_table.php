@@ -31,7 +31,7 @@ return new class extends Migration {
 
         // 2. Update postulaciones status enum
         if (config('database.default') === 'mysql') {
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE postulaciones MODIFY COLUMN estado ENUM('pendiente', 'aprobado', 'rechazado', 'apto_entrevista', 'entrevista_programada', 'becario') DEFAULT 'pendiente'");
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE postulaciones MODIFY COLUMN estado ENUM('pendiente', 'aprobado', 'rechazado', 'apto_entrevista', 'entrevista_programada', 'becario', 'lista_espera') DEFAULT 'pendiente'");
         } else {
             Schema::table('postulaciones', function (Blueprint $table) {
                 $table->string('estado')->default('pendiente')->change();

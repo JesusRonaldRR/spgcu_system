@@ -31,8 +31,19 @@ MAIL_FROM_ADDRESS="tu-correo@outlook.com"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-## Opción 3: Mailtrap (Solo para desarrollo)
-Si quieres probar que los correos se envían sin mandarlos a personas reales, usa [Mailtrap.io](https://mailtrap.io). Te darán un `USERNAME` y `PASSWORD` específicos.
+## Opción 3: Mailtrap (Recomendado para Desarrollo/Pruebas)
+Si quieres probar que los correos se envían sin mandarlos a personas reales, usa [Mailtrap.io](https://mailtrap.io). El sistema ya viene pre-configurado con las credenciales de sandbox para facilitar las pruebas iniciales:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=53aed33c7538970931ccfce247da41c9
+MAIL_PASSWORD=53aed33c7538970931ccfce247da41c9
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="no-reply@unam.edu.pe"
+MAIL_FROM_NAME="Comedor UNAM"
+```
 
 ---
 ### **¿Cómo probar que funciona?**

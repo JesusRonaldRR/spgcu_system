@@ -71,4 +71,12 @@ class Postulacion extends Model
 
         \Log::info('Postulacion rechazada (Model Method)', ['id' => $this->id]);
     }
+
+    public function enviarAListaEspera()
+    {
+        $this->estado = 'lista_espera';
+        $this->save();
+
+        \Log::info('Postulacion enviada a lista de espera (Model Method)', ['id' => $this->id]);
+    }
 }

@@ -37,6 +37,7 @@ export default function Index({ auth, postulaciones, convocatoriasActivas }) {
             apto_entrevista: 'bg-blue-100 text-blue-800',
             entrevista_programada: 'bg-purple-100 text-purple-800',
             becario: 'bg-teal-100 text-teal-800 border border-teal-200',
+            lista_espera: 'bg-orange-100 text-orange-800',
         };
         return (
             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colors[status] || 'bg-gray-100'}`}>
@@ -204,6 +205,13 @@ export default function Index({ auth, postulaciones, convocatoriasActivas }) {
                                                                         title="Aprobar (Apto para Entrevista)"
                                                                     >
                                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleVote(postulacion.id, 'lista_espera')}
+                                                                        className="text-white hover:bg-orange-700 bg-orange-600 px-3 py-1 rounded shadow"
+                                                                        title="Mover a Lista de Espera"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleVote(postulacion.id, 'rechazado')}

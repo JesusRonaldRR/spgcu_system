@@ -113,6 +113,22 @@ class PostulacionController extends Controller
             'indicadores' => 'required|string',
         ]);
 
+        // Backend Validation: Call must be active
+        $convocatoria = Convocatoria::findOrFail($request->convocatoria_id);
+        if (!$convocatoria->esta_activa || now()->lt($convocatoria->fecha_inicio) || now()->gt($convocatoria->fecha_fin)) {
+            return back()->withErrors(['convocatoria_id' => 'La convocatoria seleccionada no se encuentra vigente.']);
+        }
+
+        // Backend Validation: One postulation per user per active call
+        $existing = Postulacion::where('usuario_id', auth()->id())
+            ->where('convocatoria_id', $request->convocatoria_id)
+            ->whereIn('estado', ['pendiente', 'aprobado', 'apto_entrevista', 'entrevista_programada', 'becario'])
+            ->first();
+
+        if ($existing) {
+            return back()->withErrors(['convocatoria_id' => 'Ya cuenta con una postulación activa o en trámite para esta convocatoria.']);
+        }
+
         $archivos = [];
 
         // Helper to Encrypt and store
@@ -215,12 +231,14 @@ class PostulacionController extends Controller
             abort(403);
         }
 
-        $request->validate(['estado' => 'required|in:pendiente,aprobado,rechazado,apto_entrevista,entrevista_programada,becario']);
+        $request->validate(['estado' => 'required|in:pendiente,aprobado,rechazado,apto_entrevista,entrevista_programada,becario,lista_espera']);
 
         if ($request->estado === 'becario') {
             $postulacion->aprobarComoBecario();
         } elseif ($request->estado === 'rechazado') {
             $postulacion->rechazar();
+        } elseif ($request->estado === 'lista_espera') {
+            $postulacion->enviarAListaEspera();
         } else {
             $postulacion->estado = $request->estado;
             $postulacion->save();
