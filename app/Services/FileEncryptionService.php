@@ -12,11 +12,23 @@ class FileEncryptionService
     /**
      * Encrypts and stores a file in the given disk.
      */
+    private static function getKey()
+    {
+        $key = config('app.key');
+        if (str_starts_with($key, 'base64:')) {
+            $key = base64_decode(substr($key, 7));
+        }
+        return $key;
+    }
+
+    /**
+     * Encrypts and stores a file in the given disk.
+     */
     public static function encryptAndStore($file, string $path, string $disk = 'local'): bool
     {
         try {
             $contents = file_get_contents($file->getRealPath());
-            $key = config('app.key');
+            $key = self::getKey();
             $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length(self::CIPHER));
 
             $encrypted = openssl_encrypt($contents, self::CIPHER, $key, 0, $iv);
@@ -43,7 +55,7 @@ class FileEncryptionService
             }
 
             $rawContent = Storage::disk($disk)->get($path);
-            $key = config('app.key');
+            $key = self::getKey();
             $ivLength = openssl_cipher_iv_length(self::CIPHER);
 
             $iv = substr($rawContent, 0, $ivLength);

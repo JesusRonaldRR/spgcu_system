@@ -196,13 +196,10 @@ class PostulacionController extends Controller
         $path = $request->query('path');
 
         // Security: Check if user owns the postulation or is admin
-        $postulacion = Postulacion::whereJsonContains('ruta_archivos', $path)
-            ->orWhereJsonContains('ruta_archivos->especificos', ['path' => $path]) // Deep search for specific annexes
-            ->first();
+        // We use a broader search to handle both the flat JSON and the specific annexes array
+        $postulacion = Postulacion::where('ruta_archivos', 'LIKE', '%' . $path . '%')->first();
 
         if (!$postulacion) {
-             // Fallback for deeply nested JSON or other file structures if needed
-             // Simple ownership check for this prototype
              abort(404, 'Archivo no encontrado en registros.');
         }
 

@@ -23,6 +23,8 @@ El **SPGCU** es una plataforma integral diseñada para la gestión académica y 
 ### 🍔 Comedor Universitario (Becarios)
 - **Generación de QR**: Credenciales dinámicas para el control de acceso al comedor.
 - **Control de Asistencias**: Registro en tiempo real de servicios utilizados por los becarios.
+- **Pronóstico de Raciones (60/30/10)**: Algoritmo predictivo para optimizar la producción de cocina basándose en confirmaciones anticipadas.
+- **Gestión de Casos Sociales**: Acceso temporal para estudiantes en vulnerabilidad extrema mediante flujo de firma digital.
 
 ### 📊 Análisis de Datos (ETL & Reporting)
 - **Proceso ETL Automatizado**: Extracción y transformación de datos para reportes de rendimiento académico y deudores.
@@ -32,7 +34,8 @@ El **SPGCU** es una plataforma integral diseñada para la gestión académica y 
 
 ## 🛠️ Stack Tecnológico
 
-- **Backend**: PHP 8.1+, Laravel 10.x (Inertia.js + React/Vue).
+- **Backend**: PHP 8.1+, Laravel 10.x (Inertia.js + React/JSX).
+- **Seguridad**: Cifrado AES-256-CBC para documentos y firmas sensibles.
 - **Frontend**: Tailwind CSS, Vite.
 - **Base de Datos**: MySQL / MariaDB.
 - **Procesamiento de Datos**: Python 3 (Pandas, SQLAlchemy).
