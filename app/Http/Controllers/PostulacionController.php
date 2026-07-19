@@ -196,8 +196,9 @@ class PostulacionController extends Controller
         $path = $request->query('path');
 
         // Security: Check if user owns the postulation or is admin
-        // We use a broader search to handle both the flat JSON and the specific annexes array
-        $postulacion = Postulacion::where('ruta_archivos', 'LIKE', '%' . $path . '%')->first();
+        // We extract the basename to prevent JSON slash-escaping mismatch (i.e. '\/' in JSON vs '/' in query)
+        $filename = basename($path);
+        $postulacion = Postulacion::where('ruta_archivos', 'LIKE', '%' . $filename . '%')->first();
 
         if (!$postulacion) {
              abort(404, 'Archivo no encontrado en registros.');
