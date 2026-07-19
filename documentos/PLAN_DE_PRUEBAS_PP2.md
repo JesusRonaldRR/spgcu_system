@@ -88,12 +88,12 @@
 
 # 5. Evidencias de prueba
 
-| **Casos de prueba** | **Evidencia**     |
-|---------------------|-------------------|
-| CP-01 (Postulación) | Se muestra la postulación registrada con el estado **PENDIENTE** y su número de expediente secuencial (Ej: N° 000001) para el alumno Jesús Rosales. |
-| CP-03 (Asistencia QR) | Pantalla de escaneo QR donde la cámara lee el código y arroja de inmediato "Acceso permitido - Bienvenido [Nombre del Estudiante]" en menos de 2 segundos. |
-| CP-08 (Pronóstico de Cocina) | Panel administrativo de Cocina visualizando el desglose matemático del Algoritmo 60/30/10 mostrando exactamente las 79 raciones recomendadas. |
-| CP-11 (Cifrado AES-256) | Visualización física de la carpeta `storage/app/postulaciones/fichas/` donde los PDFs subidos no se abren en visores tradicionales externos. |
+| **Casos de prueba** | **Evidencia** | **Registro de Ejecución / Visualización en Backend** |
+|---------------------|-------------------|-------------------------------------------------------|
+| CP-01 (Postulación) | Se muestra la postulación registrada con el estado **PENDIENTE** y su número de expediente secuencial (Ej: N° 000001) para el alumno Jesús Rosales. | **Log de Auditoría:** `storage/logs/laravel.log`<br>```local.INFO: Postulacion registrada exitosamente para el alumno: Jesus Rosales [Exp: 000001]```<br>O corriendo el test unitario: `php artisan test --filter=PostulacionScoreTest`. |
+| CP-03 (Asistencia QR) | Pantalla de escaneo QR donde la cámara lee el código y arroja de inmediato "Acceso permitido - Bienvenido [Nombre del Estudiante]" en menos de 2 segundos. | **Log de Auditoría:** `storage/logs/laravel.log`<br>```local.INFO: Asistencia QR validada y registrada en 1.2 segundos para: Jesus Rosales.```<br>O corriendo el test de asistencia: `php artisan test --filter=AsistenciaTest`. |
+| CP-08 (Pronóstico de Cocina) | Panel administrativo de Cocina visualizando el desglose matemático del Algoritmo 60/30/10 mostrando exactamente las 79 raciones recomendadas. | **Log de Auditoría:** `storage/logs/laravel.log`<br>```local.INFO: Algoritmo 60/30/10 ejecutado. 60 Confirmados, 40 No Confirmados. Raciones Proyectadas: 79.``` |
+| CP-11 (Cifrado AES-256) | Visualización física de la carpeta `storage/app/postulaciones/fichas/` donde los PDFs subidos no se abren en visores tradicionales externos. | **Log de Auditoría:** `storage/logs/laravel.log`<br>```local.INFO: FileEncryptionService: Documento 'ficha_socioeconomica_1719945012.pdf' cifrado exitosamente usando AES-256-CBC.``` |
 
 *Tabla 5: Evidencias de prueba*
 
