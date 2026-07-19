@@ -7,6 +7,7 @@ import axios from 'axios';
 export default function Scanner({ auth }) {
     const [scanResult, setScanResult] = useState(null);
     const [scanError, setScanError] = useState(null);
+    const [identifiedStudent, setIdentifiedStudent] = useState(null);
     const [technicalError, setTechnicalError] = useState(null); // For detailed debugging
     const [isScanning, setIsScanning] = useState(false);
     const [cameras, setCameras] = useState([]);
@@ -184,24 +185,26 @@ export default function Scanner({ auth }) {
         lastScannedRef.current = decodedText;
 
         console.log("QR Detected:", decodedText);
-        setScanResult(null); // Clear previous result
+        setScanResult(null);
+        setScanError(null);
+        setIdentifiedStudent(null);
 
         try {
-            // Play beep sound immediately
-            // const audio = new Audio('/sounds/beep.mp3'); // If you have one
-            // audio.play().catch(e => {}); 
-
             const response = await axios.post(route('asistencia.store'), {
                 hash_qr: decodedText
             });
 
             console.log("API Success:", response.data);
             setScanResult(response.data);
+            setIdentifiedStudent(response.data.student);
 
         } catch (error) {
             console.error("API Error:", error);
-            // Don't stop scanning on logic error, just show it
-            setScanError(error.response?.data?.message || "Error al procesar el QR en el servidor.");
+            const data = error.response?.data;
+            setScanError(data?.message || "Error al procesar el QR en el servidor.");
+            if (data?.student) {
+                setIdentifiedStudent(data.student);
+            }
         }
 
         // Reset lock after 3 seconds so same student can scan again later if needed
@@ -286,12 +289,14 @@ export default function Scanner({ auth }) {
 
                             {/* Errors */}
                             {scanError && (
-                                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm">
                                     <div className="flex items-start">
                                         <div className="flex-shrink-0 text-red-500 text-xl">⚠️</div>
                                         <div className="ml-3 w-full">
-                                            <h3 className="text-sm font-bold text-red-800 uppercase tracking-wide">Error de Sistema/Cámara</h3>
-                                            <p className="text-red-700 mt-1">{scanError}</p>
+                                            <h3 className="text-sm font-bold text-red-800 uppercase tracking-wide">
+                                                {identifiedStudent ? `ESTUDIANTE: ${identifiedStudent}` : 'Error de Sistema/Cámara'}
+                                            </h3>
+                                            <p className="text-red-700 mt-1 font-medium">{scanError}</p>
 
                                             {/* Technical Details Toggle */}
                                             {technicalError && (

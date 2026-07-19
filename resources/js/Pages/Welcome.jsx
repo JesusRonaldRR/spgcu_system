@@ -75,7 +75,7 @@ export default function Welcome({ auth }) {
 
                 {/* Footer */}
                 <footer className="relative z-10 py-6 text-center text-white/60 text-sm">
-                    <p>© 2025 Universidad Nacional de Moquegua - Dirección de Bienestar Universitario</p>
+                    <p>© 2026 Universidad Nacional de Moquegua - Dirección de Bienestar Universitario</p>
                 </footer>
             </div>
         </>

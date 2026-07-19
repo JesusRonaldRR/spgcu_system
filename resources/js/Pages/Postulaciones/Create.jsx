@@ -26,14 +26,20 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
         ingreso_familiar: '',
         numero_miembros: '',
         condicion_vivienda: 'propia',
-        fundamentacion: 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2025-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.',
+        fundamentacion: 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2026-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.',
+        indicadores: {
+            vivienda: '',
+            salud: '',
+            alimentacion: '',
+            dependencia: ''
+        },
         ficha_socioeconomica: null,
         boletas_pago: null,
         recibo_luz: null,
         croquis: null,
         dj_pronabec: null,
         firma_digital: null,
-        anexos_adicionales: [] // Added initialization
+        anexos_adicionales: []
     });
 
     const specificCaseOptions = [
@@ -148,6 +154,13 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
     const submit = (e) => {
         e.preventDefault();
 
+        // Validate Indicators
+        const missing = Object.entries(data.indicadores).filter(([_, val]) => !val);
+        if (missing.length > 0) {
+            alert('⚠️ INDICADORES INCOMPLETOS\n\nPor favor complete todos los indicadores socioeconómicos en la tabla.');
+            return;
+        }
+
         if (!hasSigned) {
             alert('⚠️ FIRMA REQUERIDA\n\nDebe firmar el formulario antes de enviarlo.');
             return;
@@ -165,6 +178,9 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
             formData.append('numero_miembros', data.numero_miembros);
             formData.append('condicion_vivienda', data.condicion_vivienda);
             formData.append('fundamentacion', data.fundamentacion);
+
+            // Append indicators
+            formData.append('indicadores', JSON.stringify(data.indicadores));
 
             // Append mandatory files
             if (data.ficha_socioeconomica) formData.append('ficha_socioeconomica', data.ficha_socioeconomica);
@@ -232,6 +248,22 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
         </div>
     );
 
+    const canSubmit = () => {
+        // Basic fields
+        if (!data.ingreso_familiar || !data.numero_miembros) return false;
+
+        // Indicators
+        if (!data.indicadores.vivienda || !data.indicadores.salud || !data.indicadores.alimentacion || !data.indicadores.dependencia) return false;
+
+        // Mandatory Files
+        if (!data.ficha_socioeconomica || !data.boletas_pago || !data.recibo_luz || !data.croquis || !data.dj_pronabec) return false;
+
+        // Signature
+        if (!hasSigned) return false;
+
+        return true;
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -241,6 +273,24 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
+                    {convocatorias.length === 0 ? (
+                        <div className="bg-white shadow-xl rounded-lg p-12 text-center border-t-4 border-[#1e3a5f]">
+                            <div className="flex justify-center mb-6 text-[#1e3a5f]">
+                                <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2 uppercase">No hay convocatorias vigentes</h2>
+                            <p className="text-gray-600 max-w-md mx-auto">
+                                Por el momento no se reciben nuevas postulaciones. Por favor, mantente atento a la próxima convocatoria de bienestar universitario.
+                            </p>
+                            <div className="mt-8">
+                                <SecondaryButton onClick={() => router.visit(route('dashboard'))}>
+                                    Volver al Dashboard
+                                </SecondaryButton>
+                            </div>
+                        </div>
+                    ) : (
                     <form onSubmit={submit} className="bg-white shadow-2xl p-8 min-h-screen border border-gray-300 relative text-sm">
 
                         {/* FUT Header */}
@@ -324,18 +374,99 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                             </div>
                         </div>
 
-                        <SectionHeader number="V" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
+                        <SectionHeader number="V" title="GRILLA DE INDICADORES SOCIOECONÓMICOS" />
+                        <div className="p-4 overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-400 text-xs">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="border border-gray-400 p-2 text-left w-1/3">INDICADOR</th>
+                                        <th className="border border-gray-400 p-2 text-left">OPCIONES DE EVALUACIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Vivienda <span className="text-red-500">*</span></td>
+                                        <td className="border border-gray-400 p-2">
+                                            <select
+                                                className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
+                                                value={data.indicadores.vivienda}
+                                                onChange={(e) => setData('indicadores', {...data.indicadores, vivienda: e.target.value})}
+                                                required
+                                            >
+                                                <option value="">-- Seleccione --</option>
+                                                <option value="quinta">Vivienda en Quinta/Callejón/Choza</option>
+                                                <option value="alquilada">Vivienda Alquilada / Cuarto</option>
+                                                <option value="cedida">Vivienda Cedida por Familiares</option>
+                                                <option value="propia">Vivienda Propia (Material Noble)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Salud <span className="text-red-500">*</span></td>
+                                        <td className="border border-gray-400 p-2">
+                                            <select
+                                                className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
+                                                value={data.indicadores.salud}
+                                                onChange={(e) => setData('indicadores', {...data.indicadores, salud: e.target.value})}
+                                                required
+                                            >
+                                                <option value="">-- Seleccione --</option>
+                                                <option value="cronica">Enfermedad Crónica / Discapacidad</option>
+                                                <option value="frecuente">Tratamiento Médico Frecuente</option>
+                                                <option value="estable">Salud Estable</option>
+                                                <option value="buena">Buena Salud General</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Hábitos Alimenticios <span className="text-red-500">*</span></td>
+                                        <td className="border border-gray-400 p-2">
+                                            <select
+                                                className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
+                                                value={data.indicadores.alimentacion}
+                                                onChange={(e) => setData('indicadores', {...data.indicadores, alimentacion: e.target.value})}
+                                                required
+                                            >
+                                                <option value="">-- Seleccione --</option>
+                                                <option value="deficiente">Menos de 2 comidas al día</option>
+                                                <option value="irregular">Alimentación Irregular / Fuera de Hora</option>
+                                                <option value="completa">3 comidas al día (Económico)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Dependencia Económica <span className="text-red-500">*</span></td>
+                                        <td className="border border-gray-400 p-2">
+                                            <select
+                                                className="w-full border-none p-1 bg-transparent focus:ring-0 uppercase"
+                                                value={data.indicadores.dependencia}
+                                                onChange={(e) => setData('indicadores', {...data.indicadores, dependencia: e.target.value})}
+                                                required
+                                            >
+                                                <option value="">-- Seleccione --</option>
+                                                <option value="total">Dependencia Total (Padres no trabajan)</option>
+                                                <option value="parcial">Dependencia Parcial (Trabajos eventuales)</option>
+                                                <option value="independiente">Estudiante trabaja para costear estudios</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <SectionHeader number="VI" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
                         <div className="p-2">
                             <textarea
-                                className="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm h-32 p-3 text-justify uppercase text-sm"
+                                className="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm h-24 p-3 text-justify uppercase text-sm"
                                 value={data.fundamentacion}
                                 onChange={(e) => setData('fundamentacion', e.target.value)}
+                                placeholder="Describa brevemente su situación económica y por qué solicita la beca..."
                             ></textarea>
                             {errors.fundamentacion && <p className="text-red-500 text-xs">{errors.fundamentacion}</p>}
                         </div>
 
-                        {/* VI. ANEXOS OBLIGATORIOS */}
-                        <SectionHeader number="VI" title="ANEXOS (DOCUMENTOS OBLIGATORIOS) - Solo PDF" />
+                        {/* VII. ANEXOS OBLIGATORIOS */}
+                        <SectionHeader number="VII" title="ANEXOS (DOCUMENTOS OBLIGATORIOS) - Solo PDF" />
                         <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded">
                             <FileUploadRow label="1. Ficha Socioeconómica Impresa (Firmada)" id="ficha_socioeconomica" error={errors.ficha_socioeconomica} />
                             <FileUploadRow label="2. Boletas de Pago (Padres/Estudiante)" id="boletas_pago" error={errors.boletas_pago} />
@@ -344,8 +475,8 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                             <FileUploadRow label="5. Declaración Jurada PRONABEC" id="dj_pronabec" sublabel="(De no contar con otro beneficio)" error={errors.dj_pronabec} />
                         </div>
 
-                        {/* VII. ANEXOS ADICIONALES (MÚLTIPLES) */}
-                        <SectionHeader number="VII" title="ANEXOS ADICIONALES (CASOS ESPECÍFICOS) - Solo PDF" />
+                        {/* VIII. ANEXOS ADICIONALES (MÚLTIPLES) */}
+                        <SectionHeader number="VIII" title="ANEXOS ADICIONALES (CASOS ESPECÍFICOS) - Solo PDF" />
                         <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded">
                             <p className="mb-4 text-xs text-gray-600">Si aplica a alguna situación específica, agregue los documentos correspondientes:</p>
 
@@ -415,7 +546,7 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                         </div>
 
                         {/* FIRMA DIGITAL */}
-                        <SectionHeader number="VIII" title="FIRMA DEL SOLICITANTE" />
+                        <SectionHeader number="IX" title="FIRMA DEL SOLICITANTE" />
                         <div className="p-4 mt-2">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Signature Pad */}
@@ -471,13 +602,24 @@ export default function Create({ auth, convocatorias, existingPostulation }) { /
                         </div>
 
                         {/* Submit */}
-                        <div className="mt-8 flex justify-end space-x-4">
-                            <PrimaryButton className="px-8 py-3 text-lg" disabled={processing || convocatorias.length === 0}>
-                                {processing ? 'Enviando Trámite...' : 'ENVIAR FUT'}
-                            </PrimaryButton>
+                        <div className="mt-8 flex flex-col items-end">
+                            {!canSubmit() && (
+                                <p className="text-orange-600 text-xs font-bold mb-2 uppercase italic">
+                                    * Debe completar todos los campos obligatorios y firmar para enviar
+                                </p>
+                            )}
+                            <div className="flex space-x-4">
+                                <PrimaryButton
+                                    className={`px-8 py-3 text-lg transition-all duration-300 ${!canSubmit() || processing ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:scale-105'}`}
+                                    disabled={processing || !canSubmit()}
+                                >
+                                    {processing ? 'Enviando Trámite...' : 'ENVIAR FUT'}
+                                </PrimaryButton>
+                            </div>
                         </div>
 
                     </form>
+                    )}
                 </div>
             </div>
             <Modal show={showExistingModal} maxWidth="md" closeable={false}>

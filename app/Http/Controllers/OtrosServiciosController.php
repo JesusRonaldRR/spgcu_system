@@ -12,15 +12,6 @@ class OtrosServiciosController extends Controller
     {
         $user = auth()->user();
 
-        // Check if user is a current beneficiary
-        $isBeneficiary = Postulacion::where('usuario_id', $user->id)
-            ->where('estado', 'becario')
-            ->exists();
-
-        if (!$isBeneficiary && $user->rol === 'estudiante') {
-            return redirect()->route('dashboard')->withErrors(['error' => 'Acceso restringido a beneficiarios.']);
-        }
-
         // Fetch User's requests
         $misSolicitudes = \App\Models\CitaServicio::where('usuario_id', $user->id)->latest()->get();
 

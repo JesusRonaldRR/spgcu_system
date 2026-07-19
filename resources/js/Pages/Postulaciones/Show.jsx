@@ -6,22 +6,12 @@ export default function Show({ auth, postulacion }) {
     const today = new Date(postulacion.created_at);
     const dateString = `MOQUEGUA, ${today.getDate()} DE ${today.toLocaleString('es-ES', { month: 'long' }).toUpperCase()} DEL ${today.getFullYear()}`;
 
-    const parseFiles = (jsonString) => {
-        if (!jsonString) return {};
-        try {
-            return JSON.parse(jsonString);
-        } catch (e) {
-            console.error(e);
-            return {};
-        }
-    };
+    // ruta_archivos is already an object in newer model but could be string in legacy
+    const files = typeof postulacion.ruta_archivos === 'string'
+        ? JSON.parse(postulacion.ruta_archivos)
+        : (postulacion.ruta_archivos || {});
 
-    const files = parseFiles(postulacion.ruta_archivos);
     const anexosAdicionales = (files.especificos || []);
-    // Legacy single specific support
-    if (files.especifico && !Array.isArray(files.especifico)) {
-        anexosAdicionales.push(files.especifico);
-    }
 
     const SectionHeader = ({ number, title }) => (
         <div className="bg-gray-200 border-y border-gray-400 px-2 py-1 font-bold text-sm text-gray-800 uppercase mt-4">
@@ -45,13 +35,13 @@ export default function Show({ auth, postulacion }) {
                 <div className="flex items-center">
                     {path ? (
                         <a
-                            href={`/storage/${path}`}
+                            href={route('postulaciones.ver-archivo', { path })}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
                         >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            Ver Documento
+                            Ver Documento (Cifrado)
                         </a>
                     ) : (
                         <span className="text-red-500 italic text-sm">No adjuntado</span>
@@ -82,9 +72,10 @@ export default function Show({ auth, postulacion }) {
                                 <h1 className="font-extrabold text-xl text-gray-900 uppercase">Formulario Único de Trámite (FUT)</h1>
                                 <p className="text-xs text-red-600 font-bold mt-1">N° REGISTRO: {postulacion.id.toString().padStart(6, '0')}</p>
                             </div>
-                            <div className="w-1/4 border border-gray-400 rounded-lg h-24 flex items-center justify-center bg-gray-50 text-center p-2 relative">
+                            <div className="w-1/4 border border-gray-400 rounded-lg h-24 flex flex-col items-center justify-center bg-gray-50 text-center p-2 relative">
+                                <span className="text-gray-400 text-[10px] font-black uppercase mb-1">Puntaje: {postulacion.puntaje} pts</span>
                                 <span className="text-gray-400 text-xs font-bold z-0">SELLO DE RECEPCIÓN</span>
-                                <div className="absolute inset-0 flex items-center justify-center z-10 opacity-80 rotate-12">
+                                <div className="absolute inset-0 flex items-center justify-center z-10 opacity-80 rotate-12 pointer-events-none">
                                     <span className="border-4 border-red-600 text-red-600 font-black p-1 rounded text-lg uppercase transform">
                                         {postulacion.estado}
                                     </span>
@@ -141,7 +132,7 @@ export default function Show({ auth, postulacion }) {
                         <SectionHeader number="V" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
                         <div className="p-2">
                             <div className="w-full border border-gray-300 rounded bg-gray-50 p-3 h-32 text-justify uppercase text-sm overflow-y-auto">
-                                {postulacion.fundamentacion || 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2025-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.'}
+                                {postulacion.fundamentacion || 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO PARA EL PERIODO ACADÉMICO 2026-I, DEBIDO A MI SITUACIÓN SOCIOECONÓMICA PRECARIA.'}
                             </div>
                         </div>
 
@@ -167,12 +158,13 @@ export default function Show({ auth, postulacion }) {
                                                 <span className="text-xs text-gray-500 uppercase">{anexo.tipo}</span>
                                             </div>
                                             <a
-                                                href={`/storage/${anexo.path}`}
+                                                href={route('postulaciones.ver-archivo', { path: anexo.path })}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 font-bold text-sm underline"
+                                                className="text-blue-600 hover:text-blue-800 font-bold text-sm underline flex items-center"
                                             >
-                                                Ver Documento
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                Ver Documento (Cifrado)
                                             </a>
                                         </div>
                                     ))}
@@ -184,12 +176,11 @@ export default function Show({ auth, postulacion }) {
                         <SectionHeader number="VIII" title="FIRMA DEL SOLICITANTE" />
                         <div className="p-4 mt-2">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Signature Image */}
                                 <div className="flex flex-col items-center">
                                     <div className="border border-gray-400 p-2 bg-white">
                                         {files.firma_digital ? (
                                             <img
-                                                src={`/storage/${files.firma_digital}`}
+                                                src={route('postulaciones.ver-archivo', { path: files.firma_digital })}
                                                 alt="Firma Digital"
                                                 className="h-32 object-contain"
                                             />
@@ -202,7 +193,6 @@ export default function Show({ auth, postulacion }) {
                                     </div>
                                 </div>
 
-                                {/* Date and Place */}
                                 <div className="flex flex-col justify-center">
                                     <div className="border-t border-gray-400 pt-4 text-center">
                                         <div className="font-bold text-gray-800 uppercase text-lg">{dateString}</div>

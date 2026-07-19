@@ -21,8 +21,16 @@ class MenuController extends Controller
         // Fetch menus and group by date
         $menusRaw = Menu::whereBetween('fecha', [$start, $end])
             ->orderBy('fecha')
-            ->orderByRaw("FIELD(tipo, 'desayuno', 'almuerzo', 'cena')")
             ->get();
+
+        // Custom sort in PHP to avoid SQLite FIELD() incompatibility
+        $tipoOrder = ['desayuno' => 1, 'almuerzo' => 2, 'cena' => 3];
+        $menusRaw = $menusRaw->sort(function ($a, $b) use ($tipoOrder) {
+            if ($a->fecha->equalTo($b->fecha)) {
+                return $tipoOrder[$a->tipo] <=> $tipoOrder[$b->tipo];
+            }
+            return $a->fecha <=> $b->fecha;
+        });
 
         // Convert to array grouped by date string
         $menus = [];
@@ -59,8 +67,16 @@ class MenuController extends Controller
 
         $menusRaw = Menu::whereBetween('fecha', [$start, $end])
             ->orderBy('fecha')
-            ->orderByRaw("FIELD(tipo, 'desayuno', 'almuerzo', 'cena')")
             ->get();
+
+        // Custom sort in PHP to avoid SQLite FIELD() incompatibility
+        $tipoOrder = ['desayuno' => 1, 'almuerzo' => 2, 'cena' => 3];
+        $menusRaw = $menusRaw->sort(function ($a, $b) use ($tipoOrder) {
+            if ($a->fecha->equalTo($b->fecha)) {
+                return $tipoOrder[$a->tipo] <=> $tipoOrder[$b->tipo];
+            }
+            return $a->fecha <=> $b->fecha;
+        });
 
         // Convert to array grouped by date string
         $menus = [];
@@ -79,11 +95,39 @@ class MenuController extends Controller
             ];
         }
 
-        // Get user's existing reservations
-        $programaciones = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
+        // Check if student is beneficiary (automatically subscribed to all)
+        $isBeneficiary = \App\Models\Postulacion::where('usuario_id', $user->id)
+            ->where('estado', 'becario')
+            ->exists();
+
+        // Get user's existing reservations (pluck ID only for selection logic)
+        $programacionesIds = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
             ->whereHas('menu', function ($q) use ($start, $end) {
                 $q->whereBetween('fecha', [$start, $end]);
             })->pluck('menu_id')->toArray();
+
+        // Get detailed reservations for confirmation states
+        $programacionesDetalle = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
+            ->whereHas('menu', function ($q) use ($start, $end) {
+                $q->whereBetween('fecha', [$start, $end]);
+            })->get(['menu_id', 'confirmado', 'estado'])->keyBy('menu_id');
+
+        // If they are a beneficiary, ensure all today/future menus are in the list (Auto-Subscription)
+        if ($isBeneficiary && $user->rol === 'estudiante') {
+            $allMenus = \App\Models\Menu::whereBetween('fecha', [$start, $end])->get();
+            foreach ($allMenus as $menu) {
+                if (!in_array($menu->id, $programacionesIds)) {
+                    // Create auto-subscription
+                    \App\Models\ProgramacionComedor::firstOrCreate([
+                        'usuario_id' => $user->id,
+                        'menu_id' => $menu->id,
+                    ], [
+                        'estado' => 'programado'
+                    ]);
+                    $programacionesIds[] = $menu->id;
+                }
+            }
+        }
 
         // Count absences for this user
         $faltasCount = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
@@ -92,13 +136,31 @@ class MenuController extends Controller
 
         return Inertia::render('Comedor/Horario', [
             'menus' => $menus,
-            'programaciones' => $programaciones,
+            'programaciones' => $programacionesIds,
+            'programacionesDetalle' => $programacionesDetalle,
             'startDate' => $start->format('Y-m-d'),
             'endDate' => $end->format('Y-m-d'),
             'faltasCount' => $faltasCount,
             'serverDate' => Carbon::now()->format('Y-m-d'),
             'serverTime' => Carbon::now()->format('H:i:s'),
         ]);
+    }
+
+    /**
+     * Confirm/Unconfirm attendance for a specific menu.
+     */
+    public function confirmar(Request $request, $menuId)
+    {
+        $user = auth()->user();
+        $reservation = \App\Models\ProgramacionComedor::where('usuario_id', $user->id)
+            ->where('menu_id', $menuId)
+            ->firstOrFail();
+
+        $reservation->update([
+            'confirmado' => $request->input('confirmado', true)
+        ]);
+
+        return back()->with('success', 'Confirmación actualizada.');
     }
 
     /**

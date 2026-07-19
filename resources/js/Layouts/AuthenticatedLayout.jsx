@@ -18,7 +18,17 @@ export default function Authenticated({ user, header, children }) {
                     </svg>
                 ),
                 active: route().current('dashboard')
-            }
+            },
+            {
+                name: 'Datos Personales',
+                href: route('profile.edit'),
+                icon: (
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,3H5C3.89,3 3,3.9 3,5V19C3,20.1 3.89,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M12,6A3,3 0 0,1 15,9A3,3 0 0,1 12,12A3,3 0 0,1 9,9A3,3 0 0,1 12,6M18,18H6V17C6,15 10,13.9 12,13.9C14,13.9 18,15 18,17V18Z" />
+                    </svg>
+                ),
+                active: route().current('profile.edit')
+            },
         ];
 
         if (user.rol === 'estudiante') {
@@ -56,6 +66,16 @@ export default function Authenticated({ user, header, children }) {
                         </svg>
                     ),
                     active: route().current('citas.*')
+                },
+                {
+                    name: 'Servicios',
+                    href: route('otros-servicios.index'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                    ),
+                    active: route().current('otros-servicios.*')
                 },
                 // Only for Beneficiaries
                 ...(user.is_beneficiary ? [
@@ -147,6 +167,26 @@ export default function Authenticated({ user, header, children }) {
                     ),
                     active: route().current('reportes.comedor')
                 },
+                {
+                    name: 'Casos Sociales',
+                    href: route('admin.casos-sociales.index'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    ),
+                    active: route().current('admin.casos-sociales.*')
+                },
+                {
+                    name: 'Pronóstico',
+                    href: route('admin.pronostico.index'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                    ),
+                    active: route().current('admin.pronostico.*')
+                },
             ];
         }
 
@@ -204,6 +244,53 @@ export default function Authenticated({ user, header, children }) {
                     ),
                     active: route().current('reportes.comedor')
                 },
+                {
+                    name: 'Casos Sociales',
+                    href: route('admin.casos-sociales.index'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    ),
+                    active: route().current('admin.casos-sociales.*')
+                },
+                {
+                    name: 'Pronóstico',
+                    href: route('admin.pronostico.index'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                    ),
+                    active: route().current('admin.pronostico.*')
+                },
+            ];
+        }
+
+        if (user.rol === 'cocina') {
+            return [
+                ...commonItems,
+                {
+                    name: 'Escáner QR',
+                    href: route('cocina.asistencia.scanner'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    ),
+                    active: route().current('cocina.asistencia.scanner')
+                },
+                {
+                    name: 'Pronóstico',
+                    href: route('cocina.pronostico.index'),
+                    icon: (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                    ),
+                    active: route().current('cocina.pronostico.*')
+                },
             ];
         }
 
@@ -215,20 +302,25 @@ export default function Authenticated({ user, header, children }) {
     return (
         <div className="min-h-screen bg-[#e8f4fc] flex">
             {/* Sidebar */}
-            <aside className={`${sidebarOpen ? 'w-20' : 'w-0'} bg-[#e8f4fc] border-r border-gray-200 flex flex-col items-center py-6 transition-all duration-300 overflow-hidden`}>
+            <aside className={`${sidebarOpen ? 'w-24' : 'w-0'} bg-white border-r border-gray-200 flex flex-col items-center py-6 transition-all duration-300 overflow-hidden shadow-sm z-20`}>
                 {navItems.map((item, index) => (
                     <Link
                         key={index}
                         href={item.href}
-                        className={`w-14 h-14 mb-2 rounded-xl flex flex-col items-center justify-center transition-all duration-200 group ${item.active
-                            ? 'bg-[#31436B] text-white shadow-lg'
-                            : 'text-[#31436B] hover:bg-[#31436B]/10'
+                        className={`w-16 h-16 mb-4 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 group relative ${item.active
+                            ? 'bg-[#0f4c9b] text-white shadow-lg scale-105'
+                            : 'text-gray-500 hover:bg-[#0f4c9b]/5 hover:text-[#0f4c9b]'
                             }`}
                     >
-                        {item.icon}
-                        <span className="text-[9px] mt-1 font-medium text-center leading-tight">
-                            {item.name.length > 10 ? item.name.substring(0, 8) + '...' : item.name}
+                        <div className="transform transition-transform group-hover:scale-110">
+                            {item.icon}
+                        </div>
+                        <span className={`text-[10px] mt-1 font-bold text-center leading-tight transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
+                            {item.name}
                         </span>
+                        {item.active && (
+                            <div className="absolute right-0 w-1 h-8 bg-[#0f4c9b] rounded-l-full"></div>
+                        )}
                     </Link>
                 ))}
             </aside>
@@ -251,18 +343,22 @@ export default function Authenticated({ user, header, children }) {
 
                             {/* UNAM Logo (Clickable) */}
                             <Link href={route('dashboard')} className="flex items-center space-x-3 hover:opacity-90 transition">
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">U</span>
+                                <div className="w-10 h-10 rounded-lg bg-white p-1 shadow-sm flex items-center justify-center overflow-hidden">
+                                    <img
+                                        src="/images/unam-logo.jfif"
+                                        alt="UNAM"
+                                        className="w-full h-full object-contain"
+                                    />
                                 </div>
                                 <div>
-                                    <h1 className="text-lg font-bold tracking-wide">Sistema Comedor</h1>
-                                    <p className="text-xs text-white/70">UNAM - Moquegua</p>
+                                    <h1 className="text-lg font-bold tracking-wide leading-tight">Comedor UNAM</h1>
+                                    <p className="text-[10px] text-white/70 uppercase tracking-tighter">Bienestar Universitario</p>
                                 </div>
                             </Link>
 
                             {/* Year Badge */}
                             <div className="hidden md:flex items-center bg-white/10 rounded-lg px-3 py-1.5 border border-white/20">
-                                <span className="text-sm font-medium">2025-I</span>
+                                <span className="text-sm font-medium">2026-I</span>
                             </div>
                         </div>
 
@@ -283,6 +379,7 @@ export default function Authenticated({ user, header, children }) {
                                 </Dropdown.Trigger>
                                 <Dropdown.Content>
                                     <Dropdown.Link href={route('profile.edit')}>Mi Perfil</Dropdown.Link>
+                                    <Dropdown.Link href={route('profile.password')}>Cambiar Contraseña</Dropdown.Link>
                                     <Dropdown.Link href={route('logout')} method="post" as="button">
                                         Cerrar Sesión
                                     </Dropdown.Link>
@@ -326,7 +423,7 @@ export default function Authenticated({ user, header, children }) {
 
             {/* Version Indicator */}
             <div className="fixed bottom-2 left-2 text-[10px] text-gray-400 z-40 select-none opacity-50">
-                v1.5 (2025)
+                v1.5 (2026)
             </div>
         </div>
     );

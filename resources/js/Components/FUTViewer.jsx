@@ -57,13 +57,13 @@ export default function FUTViewer({ postulacion }) {
                 <div className="flex items-center">
                     {path ? (
                         <a
-                            href={`/storage/${path}`}
+                            href={route('postulaciones.ver-archivo', { path })}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
                         >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            Ver Documento
+                            Ver Documento (Cifrado)
                         </a>
                     ) : (
                         <span className="text-red-500 italic text-sm">No adjuntado</span>
@@ -141,14 +141,44 @@ export default function FUTViewer({ postulacion }) {
                 </div>
             </div>
 
-            <SectionHeader number="V" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
+            <SectionHeader number="V" title="GRILLA DE INDICADORES SOCIOECONÓMICOS" />
+            <div className="p-4 overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-400 text-xs">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="border border-gray-400 p-2 text-left w-1/3">INDICADOR</th>
+                            <th className="border border-gray-400 p-2 text-left">ESTADO / VALOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Vivienda</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.vivienda || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Situación de Salud</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.salud || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Hábitos Alimenticios</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.alimentacion || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td className="border border-gray-400 p-2 font-bold bg-gray-50 uppercase">Dependencia Económica</td>
+                            <td className="border border-gray-400 p-2 uppercase">{postulacion.indicadores_socioeconomicos?.dependencia || '-'}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <SectionHeader number="VI" title="FUNDAMENTACIÓN DE LA SOLICITUD" />
             <div className="p-2">
                 <div className="w-full border border-gray-300 rounded bg-gray-50 p-3 h-32 text-justify uppercase text-sm overflow-y-auto">
                     {postulacion.fundamentacion || 'SOLICITO: ACCEDER A LA BECA DEL SERVICIO DE COMEDOR UNIVERSITARIO.'}
                 </div>
             </div>
 
-            <SectionHeader number="VI" title="ANEXOS OBLIGATORIOS (VERIFICACIÓN)" />
+            <SectionHeader number="VII" title="ANEXOS OBLIGATORIOS (VERIFICACIÓN)" />
             <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded grid grid-cols-1 md:grid-cols-2 gap-4">
                 <ReadOnlyRow label="1. Ficha Socioeconómica" fileKey="ficha_socioeconomica" />
                 <ReadOnlyRow label="2. Boletas de Pago" fileKey="boletas_pago" />
@@ -159,7 +189,7 @@ export default function FUTViewer({ postulacion }) {
 
             {anexosAdicionales.length > 0 && (
                 <>
-                    <SectionHeader number="VII" title="ANEXOS ADICIONALES" />
+                    <SectionHeader number="VIII" title="ANEXOS ADICIONALES" />
                     <div className="p-4 bg-gray-50 border border-gray-200 mt-2 rounded">
                         {anexosAdicionales.map((anexo, idx) => (
                             <div key={idx} className="flex justify-between items-center border-b border-gray-200 py-2 last:border-0">
@@ -168,12 +198,12 @@ export default function FUTViewer({ postulacion }) {
                                     <span className="text-xs text-gray-500 uppercase">{anexo.tipo}</span>
                                 </div>
                                 <a
-                                    href={`/storage/${anexo.path}`}
+                                    href={route('postulaciones.ver-archivo', { path: anexo.path })}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-blue-600 hover:text-blue-800 font-bold text-sm underline"
                                 >
-                                    Ver Documento
+                                    Ver Documento (Cifrado)
                                 </a>
                             </div>
                         ))}
@@ -181,14 +211,14 @@ export default function FUTViewer({ postulacion }) {
                 </>
             )}
 
-            <SectionHeader number="VIII" title="FIRMA DEL SOLICITANTE" />
+            <SectionHeader number="IX" title="FIRMA DEL SOLICITANTE" />
             <div className="p-4 mt-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="flex flex-col items-center">
                         <div className="border border-gray-400 p-2 bg-white">
                             {files.firma_digital ? (
                                 <img
-                                    src={`/storage/${files.firma_digital}`}
+                                    src={route('postulaciones.ver-archivo', { path: files.firma_digital })}
                                     alt="Firma Digital"
                                     className="h-32 object-contain"
                                 />

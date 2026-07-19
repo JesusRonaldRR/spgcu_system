@@ -26,7 +26,8 @@ class ConvocatoriaTest extends TestCase
 
         $response = $this->actingAs($student)->get(route('admin.convocatorias.index'));
 
-        $response->assertStatus(403);
+        $response->assertStatus(302); // Redirects to dashboard with error
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_admin_can_create_convocatoria(): void
@@ -34,13 +35,13 @@ class ConvocatoriaTest extends TestCase
         $admin = User::factory()->create(['rol' => 'admin']);
 
         $response = $this->actingAs($admin)->post(route('admin.convocatorias.store'), [
-            'nombre' => 'Convocatoria 2025-I',
+            'nombre' => 'Convocatoria 2026-I',
             'fecha_inicio' => now()->toDateString(),
             'fecha_fin' => now()->addMonth()->toDateString(),
             'esta_activa' => true,
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('convocatorias', ['nombre' => 'Convocatoria 2025-I']);
+        $this->assertDatabaseHas('convocatorias', ['nombre' => 'Convocatoria 2026-I']);
     }
 }

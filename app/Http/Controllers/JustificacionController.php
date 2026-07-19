@@ -3,24 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Justificacion;
+use App\Services\FileEncryptionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
 class JustificacionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    private $disk = 'local';
+
     public function index()
     {
         $query = Justificacion::with('usuario');
-
-        // Students see only their own
         if (auth()->user()->rol === 'estudiante') {
             $query->where('usuario_id', auth()->id());
         }
-
         $justificaciones = $query->latest()->get();
 
         return Inertia::render('Justificaciones/Index', [
@@ -28,9 +25,6 @@ class JustificacionController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -41,7 +35,11 @@ class JustificacionController extends Controller
 
         $path = '';
         if ($request->hasFile('archivo')) {
-            $path = $request->file('archivo')->store('justificaciones', 'public');
+            $file = $request->file('archivo');
+            $filename = 'justificacion_' . time() . '_' . auth()->id() . '.' . $file->getClientOriginalExtension();
+            $path = 'justificaciones/' . $filename;
+
+            FileEncryptionService::encryptAndStore($file, $path, $this->disk);
         }
 
         $justificacion = new Justificacion();
@@ -52,12 +50,35 @@ class JustificacionController extends Controller
         $justificacion->estado = 'pendiente';
         $justificacion->save();
 
-        return back()->with('success', 'Justificación enviada correctamente.');
+        return back()->with('success', 'Justificación enviada correctamente (Cifrada).');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    public function downloadEncrypted(Justificacion $justificacion)
+    {
+        // Security check
+        if (auth()->user()->rol === 'estudiante' && $justificacion->usuario_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (!$justificacion->ruta_archivo) {
+            abort(404);
+        }
+
+        $decryptedContent = FileEncryptionService::decrypt($justificacion->ruta_archivo, $this->disk);
+
+        if (!$decryptedContent) {
+            abort(500, 'Error al descifrar el archivo.');
+        }
+
+        $filename = basename($justificacion->ruta_archivo);
+        $extension = pathinfo($justificacion->ruta_archivo, PATHINFO_EXTENSION);
+        $contentType = in_array($extension, ['jpg', 'jpeg', 'png']) ? 'image/jpeg' : 'application/pdf';
+
+        return response($decryptedContent)
+            ->header('Content-Type', $contentType)
+            ->header('Content-Disposition', 'inline; filename="'.$filename.'"');
+    }
+
     public function update(Request $request, Justificacion $justificacion)
     {
         if (!in_array(auth()->user()->rol, ['admin', 'administrativo', 'coordinador'])) {
@@ -71,9 +92,7 @@ class JustificacionController extends Controller
         $justificacion->estado = $request->estado;
         $justificacion->save();
 
-        // Sync with Programaciones if Approved
         if ($request->estado === 'aprobado') {
-            // Update all 'falta' or 'programado' for that day to 'justificado'
             \App\Models\ProgramacionComedor::where('usuario_id', $justificacion->usuario_id)
                 ->whereHas('menu', function ($q) use ($justificacion) {
                     $q->where('fecha', $justificacion->fecha_a_justificar);

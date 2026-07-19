@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->decimal('ingreso_familiar', 10, 2);
             $table->integer('numero_miembros');
             $table->string('condicion_vivienda');
+            $table->text('fundamentacion')->nullable();
             $table->json('ruta_archivos')->nullable(); // Rutas de PDFs
             $table->integer('puntaje')->default(0);
             $table->enum('estado', ['pendiente', 'aprobado', 'rechazado'])->default('pendiente');

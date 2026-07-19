@@ -52,7 +52,7 @@ export default function Create({ auth }) {
                             <form onSubmit={submit} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Nombres */}
-                                    <div>
+                                    <div className="md:col-span-2">
                                         <InputLabel htmlFor="nombres" value="Nombres" />
                                         <TextInput
                                             id="nombres"
@@ -66,18 +66,30 @@ export default function Create({ auth }) {
                                         <InputError className="mt-2" message={errors.nombres} />
                                     </div>
 
-                                    {/* Apellidos */}
+                                    {/* Apellido Paterno */}
                                     <div>
-                                        <InputLabel htmlFor="apellidos" value="Apellidos" />
+                                        <InputLabel htmlFor="apellido_paterno" value="Apellido Paterno" />
                                         <TextInput
-                                            id="apellidos"
+                                            id="apellido_paterno"
                                             className="mt-1 block w-full"
-                                            value={data.apellidos}
-                                            onChange={(e) => setData('apellidos', e.target.value)}
+                                            value={data.apellido_paterno}
+                                            onChange={(e) => setData('apellido_paterno', e.target.value)}
                                             required
-                                            autoComplete="family-name"
                                         />
-                                        <InputError className="mt-2" message={errors.apellidos} />
+                                        <InputError className="mt-2" message={errors.apellido_paterno} />
+                                    </div>
+
+                                    {/* Apellido Materno */}
+                                    <div>
+                                        <InputLabel htmlFor="apellido_materno" value="Apellido Materno" />
+                                        <TextInput
+                                            id="apellido_materno"
+                                            className="mt-1 block w-full"
+                                            value={data.apellido_materno}
+                                            onChange={(e) => setData('apellido_materno', e.target.value)}
+                                            required
+                                        />
+                                        <InputError className="mt-2" message={errors.apellido_materno} />
                                     </div>
 
                                     {/* Email */}
@@ -157,24 +169,6 @@ export default function Create({ auth }) {
                                 <div className="border-t pt-4">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">Datos Personales Detallados</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div>
-                                            <InputLabel htmlFor="apellido_paterno" value="Apellido Paterno" />
-                                            <TextInput
-                                                id="apellido_paterno"
-                                                className="mt-1 block w-full"
-                                                value={data.apellido_paterno}
-                                                onChange={(e) => setData('apellido_paterno', e.target.value)}
-                                            />
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="apellido_materno" value="Apellido Materno" />
-                                            <TextInput
-                                                id="apellido_materno"
-                                                className="mt-1 block w-full"
-                                                value={data.apellido_materno}
-                                                onChange={(e) => setData('apellido_materno', e.target.value)}
-                                            />
-                                        </div>
                                         <div>
                                             <InputLabel htmlFor="sexo" value="Sexo" />
                                             <select

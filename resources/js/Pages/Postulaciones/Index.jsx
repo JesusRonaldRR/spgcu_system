@@ -6,7 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import { useState } from 'react';
 import FUTViewer from '@/Components/FUTViewer';
 
-export default function Index({ auth, postulaciones }) {
+export default function Index({ auth, postulaciones, convocatoriasActivas }) {
     const isAdmin = ['admin', 'administrativo', 'coordinador'].includes(auth.user.rol);
     const [viewingPostulation, setViewingPostulation] = useState(null);
     const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'history'
@@ -37,6 +37,7 @@ export default function Index({ auth, postulaciones }) {
             apto_entrevista: 'bg-blue-100 text-blue-800',
             entrevista_programada: 'bg-purple-100 text-purple-800',
             becario: 'bg-teal-100 text-teal-800 border border-teal-200',
+            lista_espera: 'bg-orange-100 text-orange-800',
         };
         return (
             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colors[status] || 'bg-gray-100'}`}>
@@ -63,16 +64,43 @@ export default function Index({ auth, postulaciones }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                    {/* Action Button for Students */}
+                    {/* Student View: Active Convocatorias or Warning */}
                     {auth.user.rol === 'estudiante' && (
-                        <div className="flex justify-end mb-6">
-                            <Link
-                                href={route('postulaciones.create')}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center"
-                            >
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                Nueva Solicitud
-                            </Link>
+                        <div className="mb-8">
+                            {convocatoriasActivas.length > 0 ? (
+                                <div className="space-y-4">
+                                    {convocatoriasActivas.map(convocatoria => (
+                                        <div key={convocatoria.id} className="bg-white border-l-4 border-blue-600 shadow-sm rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between">
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-800 uppercase">Convocatoria: {convocatoria.nombre}</h3>
+                                                <p className="text-sm text-gray-600">
+                                                    Vigencia: <span className="font-semibold">{new Date(convocatoria.fecha_inicio).toLocaleDateString()}</span> hasta <span className="font-semibold">{new Date(convocatoria.fecha_fin).toLocaleDateString()}</span>
+                                                </p>
+                                            </div>
+                                            <div className="mt-4 md:mt-0">
+                                                <Link
+                                                    href={route('postulaciones.create')}
+                                                    className="inline-flex items-center px-6 py-3 bg-[#1e3a5f] hover:bg-[#0f4c9b] text-white font-bold rounded-lg shadow transition uppercase text-sm"
+                                                >
+                                                    Iniciar postulación
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white shadow-sm border rounded-lg p-12 flex flex-col items-center justify-center text-center">
+                                    <div className="w-24 h-24 mb-6 text-yellow-500">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <h2 className="text-3xl font-bold text-orange-500 mb-4 uppercase">¡Advertencia!</h2>
+                                    <p className="text-gray-700 text-lg max-w-2xl">
+                                        ¡El Calendario Académico se encuentra cerrado para su sede ILO!, comunicarse con su Escuela Profesional
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -119,7 +147,7 @@ export default function Index({ auth, postulaciones }) {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Convocatoria</th>
                                             {isAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>}
-
+                                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Puntaje</th>
                                             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                         </tr>
@@ -139,7 +167,11 @@ export default function Index({ auth, postulaciones }) {
                                                         <div className="text-sm text-gray-500">{postulacion.usuario?.codigo}</div>
                                                     </td>
                                                 )}
-
+                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-bold bg-blue-100 text-blue-800">
+                                                        {postulacion.puntaje} pts
+                                                    </span>
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <StatusBadge status={postulacion.estado} />
                                                     {postulacion.estado === 'entrevista_programada' && postulacion.entrevista && (
@@ -173,6 +205,13 @@ export default function Index({ auth, postulaciones }) {
                                                                         title="Aprobar (Apto para Entrevista)"
                                                                     >
                                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleVote(postulacion.id, 'lista_espera')}
+                                                                        className="text-white hover:bg-orange-700 bg-orange-600 px-3 py-1 rounded shadow"
+                                                                        title="Mover a Lista de Espera"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleVote(postulacion.id, 'rechazado')}

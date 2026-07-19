@@ -151,7 +151,7 @@ export default function Index({ auth, justificaciones }) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     {just.ruta_archivo ? (
-                                                        <a href={`/storage/${just.ruta_archivo}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Ver Archivo</a>
+                                                        <a href={route('justificaciones.ver-archivo', just.id)} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Ver Archivo (Cifrado)</a>
                                                     ) : (
                                                         <span className="text-gray-400 text-xs">Sin archivo</span>
                                                     )}

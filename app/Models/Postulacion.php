@@ -17,6 +17,7 @@ class Postulacion extends Model
         'ingreso_familiar',
         'numero_miembros',
         'condicion_vivienda',
+        'indicadores_socioeconomicos',
         'ruta_archivos',
         'puntaje',
         'estado',
@@ -25,6 +26,7 @@ class Postulacion extends Model
 
     protected $casts = [
         'ruta_archivos' => 'array',
+        'indicadores_socioeconomicos' => 'array',
         'ingreso_familiar' => 'decimal:2',
     ];
 
@@ -68,5 +70,13 @@ class Postulacion extends Model
         $this->save();
 
         \Log::info('Postulacion rechazada (Model Method)', ['id' => $this->id]);
+    }
+
+    public function enviarAListaEspera()
+    {
+        $this->estado = 'lista_espera';
+        $this->save();
+
+        \Log::info('Postulacion enviada a lista de espera (Model Method)', ['id' => $this->id]);
     }
 }

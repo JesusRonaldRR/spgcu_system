@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
@@ -11,28 +11,47 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
     const [isEditing, setIsEditing] = useState(false);
 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
-        nombres: user.nombres,
-        apellidos: user.apellidos,
+        // Non-editable fields (read only in UI)
+        codigo: user.codigo || '',
+        dni: user.dni || '',
+        apellidos: user.apellidos || '',
+        nombres: user.nombres || '',
         apellido_paterno: user.apellido_paterno || '',
         apellido_materno: user.apellido_materno || '',
-        email: user.email,
+
+        // Editable fields
         sexo: user.sexo || 'M',
         estado_civil: user.estado_civil || '',
-        fecha_nacimiento: user.fecha_nacimiento || '',
-        telefono: user.telefono || '',
-        dni: user.dni || '',
-        codigo: user.codigo || '',
-
-        // Location
-        direccion_actual: user.direccion_actual || '',
-        ubigeo_actual: user.ubigeo_actual || '',
-        ubigeo_nacimiento: user.ubigeo_nacimiento || '',
-
-        // Education
+        ubigeo_colegio: user.ubigeo_colegio || '',
         nombre_colegio: user.nombre_colegio || '',
         tipo_colegio: user.tipo_colegio || '',
         anio_termino_colegio: user.anio_termino_colegio || '',
+        ubigeo_actual: user.ubigeo_actual || '',
+        direccion_actual: user.direccion_actual || '',
+        email: user.email || '',
+        telefono: user.telefono || '',
+        fecha_nacimiento: user.fecha_nacimiento || '',
+        ubigeo_nacimiento: user.ubigeo_nacimiento || '',
+        contacto_emergencia_nombre: user.contacto_emergencia_nombre || '',
+        contacto_emergencia_telefono: user.contacto_emergencia_telefono || '',
     });
+
+    // Ensure contact data is synced if props change
+    useEffect(() => {
+        setData({
+            ...data,
+            email: user.email || '',
+            telefono: user.telefono || '',
+            sexo: user.sexo || 'M',
+            estado_civil: user.estado_civil || '',
+            direccion_actual: user.direccion_actual || '',
+            ubigeo_actual: user.ubigeo_actual || '',
+            fecha_nacimiento: user.fecha_nacimiento || '',
+            ubigeo_nacimiento: user.ubigeo_nacimiento || '',
+            contacto_emergencia_nombre: user.contacto_emergencia_nombre || '',
+            contacto_emergencia_telefono: user.contacto_emergencia_telefono || '',
+        });
+    }, [user]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -41,19 +60,55 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
         });
     };
 
-    const ReadOnlyField = ({ label, value }) => (
-        <div className="border border-gray-300">
-            <div className="bg-[#1e3a5f] text-white px-3 py-1 font-bold text-xs uppercase text-right w-full">
-                {label}
+    const DataRow = ({ label, value, isEditable = false, fieldName, type = "text", options = null, showEditButton = false }) => {
+        return (
+            <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
+                <div className="bg-[#1e3a5f] text-white p-2 text-xs font-bold uppercase flex items-center">
+                    {label}
+                </div>
+                <div className={`p-1 flex items-center min-h-[40px] ${isEditable && isEditing ? 'bg-[#f0f7ff]' : 'bg-white'}`}>
+                    {isEditing && isEditable ? (
+                        <div className="w-full flex items-center gap-2">
+                            {options ? (
+                                <select
+                                    className="w-full border-none bg-transparent focus:ring-0 text-sm py-1"
+                                    value={data[fieldName]}
+                                    onChange={(e) => setData(fieldName, e.target.value)}
+                                >
+                                    {options.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    type={type}
+                                    className="w-full border-none bg-transparent focus:ring-0 text-sm py-1"
+                                    value={data[fieldName]}
+                                    onChange={(e) => setData(fieldName, e.target.value)}
+                                />
+                            )}
+                        </div>
+                    ) : (
+                        <div className="w-full px-2 flex justify-between items-center">
+                            <span className="text-sm text-gray-800 uppercase font-medium">
+                                {value || '-'}
+                            </span>
+                            {showEditButton && !isEditing && (
+                                <span className="text-[9px] bg-gray-100 text-gray-400 px-1 rounded">fijo</span>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
-            <div className="bg-white px-3 py-2 text-sm text-gray-800 min-h-[30px] font-medium uppercase border-t border-gray-300">
-                {value || '-'}
-            </div>
+        );
+    };
+
+    const SectionHeader = ({ title }) => (
+        <div className="bg-[#1e3a5f] text-white font-bold text-center py-1 text-sm border-b border-white">
+            {title}
         </div>
     );
 
-    // Grid layout for read-only view matching screenshot
-    // Using simple HTML table-like structure via CSS grid
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -61,266 +116,118 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
         >
             <Head title="Mi Perfil" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="py-6 bg-[#f0f4f8] min-h-screen">
+                <div className="max-w-[1400px] mx-auto px-4">
 
-                    {/* Header with Title and Edit Button */}
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-xl font-bold text-[#1e3a5f]">Datos Personales</h3>
-                        <button
-                            onClick={() => setIsEditing(!isEditing)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1px-4 rounded shadow text-sm px-4"
-                        >
-                            {isEditing ? 'Cancelar Edición' : 'Editar'}
-                        </button>
-                    </div>
-
-                    {status === 'profile-updated' && (
-                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-                            <span className="block sm:inline">Perfil actualizado correctamente.</span>
-                        </div>
-                    )}
-
-                    {!isEditing ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Left Column: General & Address */}
-                            <div className="space-y-6">
-                                {/* Datos Generales Table Style */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos Generales
-                                    </div>
-                                    <div className="grid grid-cols-[140px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Código</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.codigo}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">DNI</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.dni}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r uppercase">Apellidos</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.apellidos} {user.apellido_paterno} {user.apellido_materno}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r uppercase">Nombres</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.nombres}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r uppercase">Sexo</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.sexo === 'M' ? 'MASCULINO' : 'FEMENINO'}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r uppercase">Estado Civil</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900 uppercase">{user.estado_civil}</div>
-                                    </div>
-                                </div>
-
-                                {/* Formacion Basica */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de Formación Básica
-                                    </div>
-                                    <div className="grid grid-cols-[140px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">UBIGEO Colegio</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.ubigeo_colegio}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Nombre Colegio</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.nombre_colegio}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Tipo Colegio</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.tipo_colegio}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Año Término</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">{user.anio_termino_colegio}</div>
-                                    </div>
-                                </div>
-
-                                {/* Domicilio Actual */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de Domicilio Actual
-                                    </div>
-                                    <div className="grid grid-cols-[140px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">UBIGEO Actual</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.ubigeo_actual}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Dirección</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.direccion_actual}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Referencia</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">-</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Column: PIDE Details */}
-                            <div className="space-y-6">
-                                {/* Datos PIDE */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos Adicionales
-                                    </div>
-                                    <div className="grid grid-cols-[160px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Apellido Paterno</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.apellido_paterno}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Apellido Materno</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.apellido_materno}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Nombres</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900 uppercase">{user.nombres}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Fecha Nacimiento</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">{user.fecha_nacimiento}</div>
-                                    </div>
-                                </div>
-
-                                {/* Lugar Nacimiento */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de Lugar Nacimiento
-                                    </div>
-                                    <div className="grid grid-cols-[160px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">UBIGEO Nacimiento</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900 uppercase">{user.ubigeo_nacimiento}</div>
-                                    </div>
-                                </div>
-
-                                {/* Contacto Personal */}
-                                <div className="border border-[#1e3a5f] rounded-t-lg overflow-hidden">
-                                    <div className="bg-[#1e3a5f] text-white font-bold text-center py-2">
-                                        Datos de contacto personal
-                                    </div>
-                                    <div className="grid grid-cols-[160px_1fr]">
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-b border-white border-r">Email</div>
-                                        <div className="bg-white p-2 text-sm border-b text-gray-900">{user.email}</div>
-
-                                        <div className="bg-[#1e3a5f] text-white p-2 text-sm font-bold border-white border-r">Teléfono</div>
-                                        <div className="bg-white p-2 text-sm text-gray-900">{user.telefono}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        /* EDIT FORM */
-                        <form onSubmit={submit} className="bg-white p-6 rounded-lg shadow-lg">
-                            <h3 className="text-lg font-bold text-[#1e3a5f] mb-4 border-b pb-2">Editar Información</h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Apellidos Detallados */}
-                                <div>
-                                    <InputLabel htmlFor="apellido_paterno" value="Apellido Paterno" />
-                                    <TextInput id="apellido_paterno" className="mt-1 block w-full" value={data.apellido_paterno} onChange={(e) => setData('apellido_paterno', e.target.value)} />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="apellido_materno" value="Apellido Materno" />
-                                    <TextInput id="apellido_materno" className="mt-1 block w-full" value={data.apellido_materno} onChange={(e) => setData('apellido_materno', e.target.value)} />
-                                </div>
-
-                                {/* Nombres & Sexo */}
-                                <div>
-                                    <InputLabel htmlFor="nombres" value="Nombres" />
-                                    <TextInput id="nombres" className="mt-1 block w-full bg-gray-100" value={data.nombres} disabled />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="sexo" value="Sexo" />
-                                    <select
-                                        id="sexo"
-                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                        value={data.sexo}
-                                        onChange={(e) => setData('sexo', e.target.value)}
-                                    >
-                                        <option value="M">Masculino</option>
-                                        <option value="F">Femenino</option>
-                                    </select>
-                                </div>
-
-                                {/* Fecha Nacimiento & Estado Civil */}
-                                <div>
-                                    <InputLabel htmlFor="fecha_nacimiento" value="Fecha de Nacimiento" />
-                                    <TextInput type="date" id="fecha_nacimiento" className="mt-1 block w-full" value={data.fecha_nacimiento} onChange={(e) => setData('fecha_nacimiento', e.target.value)} />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="estado_civil" value="Estado Civil" />
-                                    <select
-                                        id="estado_civil"
-                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                        value={data.estado_civil}
-                                        onChange={(e) => setData('estado_civil', e.target.value)}
-                                    >
-                                        <option value="">Seleccione</option>
-                                        <option value="SOLTERO">SOLTERO</option>
-                                        <option value="CASADO">CASADO</option>
-                                        <option value="DIVORCIADO">DIVORCIADO</option>
-                                        <option value="VIUDO">VIUDO</option>
-                                    </select>
-                                </div>
-
-                                {/* Contacto */}
-                                <div>
-                                    <InputLabel htmlFor="email" value="Email" />
-                                    <TextInput type="email" id="email" className="mt-1 block w-full" value={data.email} onChange={(e) => setData('email', e.target.value)} required />
-                                    <InputError message={errors.email} className="mt-2" />
-                                </div>
-                                <div>
-                                    <InputLabel htmlFor="telefono" value="Teléfono / Celular" />
-                                    <TextInput id="telefono" className="mt-1 block w-full" value={data.telefono} onChange={(e) => setData('telefono', e.target.value)} />
-                                </div>
-
-                                {/* Ubicacion */}
-                                <div className="col-span-2">
-                                    <h4 className="font-bold text-gray-700 mt-2 mb-2">Domicilio Actual</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <InputLabel htmlFor="direccion_actual" value="Dirección" />
-                                            <TextInput id="direccion_actual" className="mt-1 block w-full" value={data.direccion_actual} onChange={(e) => setData('direccion_actual', e.target.value)} />
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="ubigeo_actual" value="UBIGEO (Dep/Prov/Dist)" />
-                                            <TextInput id="ubigeo_actual" className="mt-1 block w-full" value={data.ubigeo_actual} onChange={(e) => setData('ubigeo_actual', e.target.value)} placeholder="MOQUEGUA/ILO/ILO" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Education */}
-                                <div className="col-span-2">
-                                    <h4 className="font-bold text-gray-700 mt-2 mb-2">Educación Básica</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <InputLabel htmlFor="nombre_colegio" value="Nombre Colegio" />
-                                            <TextInput id="nombre_colegio" className="mt-1 block w-full" value={data.nombre_colegio} onChange={(e) => setData('nombre_colegio', e.target.value)} />
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="tipo_colegio" value="Tipo (Publico/Privado)" />
-                                            <select
-                                                id="tipo_colegio"
-                                                className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                                value={data.tipo_colegio}
-                                                onChange={(e) => setData('tipo_colegio', e.target.value)}
-                                            >
-                                                <option value="">Seleccione</option>
-                                                <option value="PUBLICO">PUBLICO</option>
-                                                <option value="PRIVADO">PRIVADO</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <InputLabel htmlFor="anio_termino_colegio" value="Año Término" />
-                                            <TextInput type="number" id="anio_termino_colegio" className="mt-1 block w-full" value={data.anio_termino_colegio} onChange={(e) => setData('anio_termino_colegio', e.target.value)} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-end mt-6 gap-4">
+                    <div className="flex justify-center mb-6 space-x-4">
+                        {!isEditing ? (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="bg-[#0f4c9b] hover:bg-[#0a3a7a] text-white font-bold py-2 px-8 rounded shadow text-sm uppercase transition"
+                            >
+                                Editar Datos
+                            </button>
+                        ) : (
+                            <>
                                 <button
-                                    type="button"
+                                    onClick={submit}
+                                    disabled={processing}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded shadow text-sm uppercase transition"
+                                >
+                                    Guardar
+                                </button>
+                                <button
                                     onClick={() => setIsEditing(false)}
-                                    className="text-gray-600 hover:text-gray-900"
+                                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-8 rounded shadow text-sm uppercase transition"
                                 >
                                     Cancelar
                                 </button>
-                                <PrimaryButton disabled={processing}>
-                                    Guardar Cambios
-                                </PrimaryButton>
-                            </div>
-                        </form>
+                            </>
+                        )}
+                    </div>
+
+                    {recentlySuccessful && (
+                        <div className="max-w-md mx-auto mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded text-center text-sm font-bold uppercase">
+                            ¡Datos actualizados correctamente!
+                        </div>
                     )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-12">
+                        {/* LEFT COLUMN */}
+                        <div className="bg-white border border-gray-300 rounded overflow-hidden shadow-md">
+                            <SectionHeader title="DATOS GENERALES" />
+                            <DataRow label="Código" value={user.codigo} />
+                            <DataRow label="DNI" value={user.dni} />
+                            <DataRow label="APELLIDOS" value={user.apellidos} />
+                            <DataRow label="NOMBRES" value={user.nombres} />
+                            <DataRow
+                                label="SEXO"
+                                value={user.sexo === 'M' ? 'MASCULINO' : user.sexo === 'F' ? 'FEMENINO' : '-'}
+                                isEditable
+                                fieldName="sexo"
+                                options={[{label: 'MASCULINO', value: 'M'}, {label: 'FEMENINO', value: 'F'}]}
+                            />
+                            <DataRow
+                                label="ESTADO CIVIL"
+                                value={user.estado_civil}
+                                isEditable
+                                fieldName="estado_civil"
+                                options={[
+                                    {label: 'SOLTERO(A)', value: 'SOLTERO(A)'},
+                                    {label: 'CASADO(A)', value: 'CASADO(A)'},
+                                    {label: 'DIVORCIADO(A)', value: 'DIVORCIADO(A)'},
+                                    {label: 'VIUDO(A)', value: 'VIUDO(A)'},
+                                ]}
+                            />
+
+                            <SectionHeader title="DATOS DE FORMACIÓN BÁSICA" />
+                            <DataRow label="UBIGEO Colegio" value={data.ubigeo_colegio} isEditable fieldName="ubigeo_colegio" />
+                            <DataRow label="Nombre Colegio" value={data.nombre_colegio} isEditable fieldName="nombre_colegio" />
+                            <DataRow
+                                label="Tipo Colegio"
+                                value={data.tipo_colegio}
+                                isEditable
+                                fieldName="tipo_colegio"
+                                options={[{label: 'P (Público)', value: 'P'}, {label: 'PR (Privado)', value: 'PR'}]}
+                            />
+                            <DataRow label="Año Término Colegio" value={data.anio_termino_colegio} isEditable fieldName="anio_termino_colegio" type="number" />
+                            <DataRow label="Observ. Colegio" value="-" />
+
+                            <SectionHeader title="DATOS DE DOMICILIO ACTUAL" />
+                            <DataRow label="UBIGEO Actual" value={data.ubigeo_actual} isEditable fieldName="ubigeo_actual" />
+                            <DataRow label="Departamento" value="MOQUEGUA" />
+                            <DataRow label="Provincia" value="ILO" />
+                            <DataRow label="Distrito" value="ILO" />
+                            <DataRow label="Dirección" value={data.direccion_actual} isEditable fieldName="direccion_actual" />
+                        </div>
+
+                        {/* RIGHT COLUMN */}
+                        <div className="bg-white border border-gray-300 rounded overflow-hidden shadow-md">
+                            <SectionHeader title="DATOS PIDE" />
+                            <DataRow label="Apellido Paterno" value={user.apellido_paterno} />
+                            <DataRow label="Apellido Materno" value={user.apellido_materno} />
+                            <DataRow label="Nombres" value={user.nombres} />
+                            <DataRow label="UBIGEO" value="MOQUEGUA/ILO/ILO" />
+                            <DataRow label="Dirección" value={user.direccion_actual} />
+                            <DataRow label="Estado Civil" value={user.estado_civil} />
+                            <DataRow label="Restricciones" value="NINGUNA" />
+                            <DataRow label="Fecha Consulta" value={new Date().toLocaleString()} />
+
+                            <SectionHeader title="DATOS DE LUGAR NACIMIENTO" />
+                            <DataRow label="UBIGEO Nacimiento" value={data.ubigeo_nacimiento} isEditable fieldName="ubigeo_nacimiento" />
+                            <DataRow label="Fecha Nacimiento" value={data.fecha_nacimiento} isEditable fieldName="fecha_nacimiento" type="date" />
+
+                            <SectionHeader title="DATOS DE CONTACTO PERSONAL" />
+                            <DataRow label="Facebook" value="-" />
+                            <DataRow label="Email" value={data.email} isEditable fieldName="email" type="email" />
+                            <DataRow label="Teléfono" value={data.telefono} isEditable fieldName="telefono" />
+
+                            <SectionHeader title="DATOS DE PERSONA DE CONTACTO" />
+                            <DataRow label="Persona de contacto" value={data.contacto_emergencia_nombre} isEditable fieldName="contacto_emergencia_nombre" />
+                            <DataRow label="Nombre de contacto" value="-" />
+                            <DataRow label="Teléfono de contacto" value={data.contacto_emergencia_telefono} isEditable fieldName="contacto_emergencia_telefono" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
