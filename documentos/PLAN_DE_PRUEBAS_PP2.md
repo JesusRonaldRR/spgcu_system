@@ -34,12 +34,10 @@
 
 | **Nombre del proyecto** | Sistema Web de Postulación y Gestión del Comedor Universitario de la UNAM (SPGCU-UNAM) |
 |-------------------------|----------------------------------------------------------------------------------------|
-| **Versión**             | 2.1 (Producción con Cifrado y Módulos Finales)                                         |
+| **Versión**             | 2.0                                                                                    |
 | **Auto(res)**           | Jesús Ronald Rosales Roca                                                              |
 
 *Tabla 1: Información general*
-
----
 
 # 2. Cambios respecto al PP 1
 
@@ -52,20 +50,16 @@
 
 *Tabla 2: Cambios respecto al PP 1*
 
----
-
 # 3. Entorno de ejecución de pruebas
 
 | **Elemento**           | **Descripción**                                                                                           |
 |------------------------|-----------------------------------------------------------------------------------------------------------|
 | Dispositivo            | PC de desarrollo con procesador Intel Core i5 o superior, 8 GB RAM mínimo, conexión a internet de 10 Mbps |
-| Sistema operativo      | Windows 11                                                                                                |
+| Sistema operativo      | Windows 11 / Linux (para contenedores Docker)                                                             |
 | Navegador / Plataforma | Google Chrome (última versión), plataforma web responsiva (VILT: Laravel 10, React 18, Inertia.js)        |
-| Base de datos          | MySQL 8.0 / SQLite (para tests automatizados rápidos)                                                     |
+| Base de datos          | MySQL 8.0                                                                                                 |
 
 *Tabla 3: Entorno de ejecución de pruebas*
-
----
 
 # 4. Ejecución de casos de prueba
 
@@ -92,34 +86,33 @@
 
 *Tabla 4: Ejecución de casos de prueba*
 
----
-
 # 5. Evidencias de prueba
 
-| **Casos de prueba** | **Evidencia** |
+| **Casos de prueba** | **Evidencia**     |
 |---------------------|-------------------|
-| CP-01 (Postulación) | Se muestra la postulación registrada con el estado **PENDIENTE** y su número de expediente secuencial (Ej: N° 000001). |
+| CP-01 (Postulación) | Se muestra la postulación registrada con el estado **PENDIENTE** y su número de expediente secuencial (Ej: N° 000001) para el alumno Jesús Rosales. |
 | CP-03 (Asistencia QR) | Pantalla de escaneo QR donde la cámara lee el código y arroja de inmediato "Acceso permitido - Bienvenido [Nombre del Estudiante]" en menos de 2 segundos. |
 | CP-08 (Pronóstico de Cocina) | Panel administrativo de Cocina visualizando el desglose matemático del Algoritmo 60/30/10 mostrando exactamente las 79 raciones recomendadas. |
 | CP-11 (Cifrado AES-256) | Visualización física de la carpeta `storage/app/postulaciones/fichas/` donde los PDFs subidos no se abren en visores tradicionales externos. |
 
 *Tabla 5: Evidencias de prueba*
 
----
-
 # 6. Registros de defectos
 
-| **ID** | **Defecto**                                                                    | **Caso de prueba** | **Severidad** | **Estado** |
-|--------|--------------------------------------------------------------------------------|--------------------|---------------|------------|
-| D-01   | Cifrado AES-256-CBC no implementado en *storage/app/encrypted/.*               | CP-11, CP-13       | Alta          | **Resuelto** |
-| D-02   | Backups automáticos del Scheduler (02:00 AM) no configurados en entorno local. | CP-10              | Alta          | **Resuelto** |
-| D-03   | El algoritmo 60/30/10 no considera feriados regionales de Moquegua automáticamente. | CP-08                        | Media                   | **Resuelto** |
-| D-04   | Notificaciones push nativas (Android/iOS) no implementadas; solo alertas web.       | CP-06                        | Baja                    | **Aceptado** |
-| D-05   | Ordenamiento mediante `FIELD()` incompatible en entornos de pruebas SQLite.    | CP-08 (Pronóstico) | Alta          | **Resuelto** |
+| **ID** | **Defecto** | **Caso de prueba** | **Severidad** | **Estado** |
+|--------|-------------|--------------------|---------------|------------|
+| D-01   | Cifrado AES-256-CBC no implementado en *storage/app/encrypted/.* | CP-11, CP-13 | Alta | **Resuelto** |
+| D-02   | Backups automáticos del Scheduler (02:00 AM) no configurados en entorno local. | CP-10 | Alta | **Resuelto** |
+
+*La tabla continua en la siguiente pagina*
+
+| **ID** | **Defecto** | **Caso de prueba** | **Severidad** | **Estado** |
+|--------|-------------|--------------------|---------------|------------|
+| D-03   | El algoritmo 60/30/10 no considera feriados regionales de Moquegua automáticamente. | CP-08 | Media | **Resuelto** |
+| D-04   | Notificaciones push nativas (Android/iOS) no implementadas; solo alertas web. | CP-06 | Baja | **Aceptado** |
+| D-05   | Ordenamiento mediante `FIELD()` incompatible en entornos de pruebas SQLite. | CP-08 (Pronóstico) | Alta | **Resuelto** |
 
 *Tabla 6: Registros de defectos*
-
----
 
 # 7. Análisis de resultados
 
@@ -133,8 +126,6 @@
 *Tabla 7: Análisis de resultados*
 
 El 100 % de los casos ejecutados fueron aprobados con éxito total. Las brechas detectadas en seguridad (cifrado AES-256) y validaciones en backend han sido 100% integradas, brindando solidez comercial y académica al sistema.
-
----
 
 # 8. Cobertura de pruebas
 
@@ -154,8 +145,6 @@ El 100 % de los casos ejecutados fueron aprobados con éxito total. Las brechas 
 
 *Tabla 8: Cobertura de pruebas*
 
----
-
 # 9. Validación de requisitos
 
 | **Requisito**                  | **Validado** | **Observaciones**                                                              |
@@ -164,7 +153,7 @@ El 100 % de los casos ejecutados fueron aprobados con éxito total. Las brechas 
 | RF02 - Puntaje socioeconómico  | Validado     | CP-02 aprobado. Algoritmo de 4 dimensiones calcula puntaje 0-80 correctamente. |
 | RF04 - Asistencia QR ≤2 seg    | Validado     | CP-03 aprobado. Validación con cámara real en menos de 2 segundos.             |
 | RF05 - Justificaciones 3 días  | Validado     | CP-04 aprobado. Sistema bloquea envíos fuera del plazo reglamentario.          |
-| RF07 - Reportes PDF/Excel      | Validado     | CP-05 aprobado. Exportación correcta en formato CSV/PDF.                       |
+| RF07 - Reportes PDF/Excel      | Validado     | CP-05 aprobado. Exportación correcta con DomPDF y Maatwebsite.                 |
 | RF09 - Confirmación anticipada | Validado     | CP-06 aprobado. Respuesta Sí/No registrada; bloqueo fuera de horario.          |
 | RF10 - Lista de espera digital | Validado     | CP-07 aprobado. Cupos y posición actualizados en tiempo real.                  |
 | RF11 - Pronóstico 60/30/10     | Validado     | CP-08 aprobado. 79 raciones proyectadas con 60 confirmados y 40 sin confirmar. |
@@ -173,8 +162,6 @@ El 100 % de los casos ejecutados fueron aprobados con éxito total. Las brechas 
 
 *Tabla 9: Validación de requisitos*
 
----
-
 # 10. Mejoras propuestas
 
 | **Problema**                                                        | **Mejora**                                                                                                                                                                            |
@@ -182,12 +169,10 @@ El 100 % de los casos ejecutados fueron aprobados con éxito total. Las brechas 
 | Cifrado AES-256-CBC no implementado en el servidor (D-01).          | **Integrado:** Se desarrolló un `FileEncryptionService` robusto en Laravel que encripta todos los archivos usando la llave secreta del servidor antes de guardarlos.                 |
 | Backups automáticos del Scheduler no configurados (D-02).           | **Configurado:** Se prepararon scripts Dockerizados para automatizar respaldos semanales completos de la base de datos MySQL local.                                                 |
 | Pronóstico 60/30/10 no considera feriados regionales (D-03).        | Se implementó lógica para ignorar días no hábiles (Sábados/Domingos) y dar control manual al administrador de comedor para pausar el cálculo en feriados.                            |
-| Notificaciones push solo en navegador web (D-04).                   | Pendiente para fases futuras de integración móvil nativa (Android/iOS) mediante servicios FCM.                                                                                        |
+| Notificaciones push solo en navegador web (D-04).                   | Evaluar la implementación de Web Push Notifications (FCM) para enviar alertas de confirmación anticipada (RF09) a dispositivos móviles sin requerir una app nativa.                   |
 | Ordenamiento mediante `FIELD()` incompatible con SQLite en tests.   | **Corregido:** Se reemplazó el ordenamiento raw por ordenamientos coleccionados en PHP, posibilitando compatibilidad de pruebas en SQLite y MySQL.                                    |
 
 *Tabla 10: Mejoras propuestas*
-
----
 
 # 11. Re-pruebas
 
@@ -198,8 +183,6 @@ El 100 % de los casos ejecutados fueron aprobados con éxito total. Las brechas 
 | CP-11 (segunda ejecución)                      | Cifrado y descifrado "al vuelo" (on-the-fly) de los PDFs.                                                                                                                  | Aprobado. Los administradores pueden visualizar la ficha y firmas de los alumnos sin romper el cifrado.      |
 
 *Tabla 11: Re-pruebas*
-
----
 
 # 12. Validación final del sistema
 
